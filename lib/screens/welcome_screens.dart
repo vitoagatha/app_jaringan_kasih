@@ -51,7 +51,7 @@ class WelcomeScreens extends StatelessWidget{
                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
               ),
               child: const Text(
-                'Mulai Sekarang',
+                'Mulai Sekarang juga',
                 style: TextStyle(fontSize: 16, color: Colors.white),
               ),
             ),
