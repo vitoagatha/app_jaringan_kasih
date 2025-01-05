@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const String appTitle = 'Jaringan Kasih';
-    return const MaterialApp(
+    return MaterialApp(
       title: appTitle,
       home: WelcomeScreens(),
     );

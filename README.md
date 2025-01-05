@@ -4,6 +4,8 @@
 A new Flutter project.
 
 ## Getting Started
+# Add flutter pub add carousel_sliders
+# Add flutter pub add icon_plus
 
 This project is a starting point for a Flutter application.
 

@@ -1,10 +1,10 @@
-import 'package:app_jaringan_kasih/screens/home_screens.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
+
 import 'education_detail_screens.dart';
 
-class EducationScreens extends StatelessWidget {
-  const EducationScreens({super.key});
+class LingkunganScreens extends StatelessWidget{
+  const LingkunganScreens({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +49,7 @@ class EducationScreens extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Edukasi untuk anak miskin',
+                      'Gerakan Lestari Alam',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     IconButton(
@@ -64,7 +64,7 @@ class EducationScreens extends StatelessWidget {
                     ),
                   ],
                 ),
-                const Text('By Pondok Yatim', style: TextStyle(fontSize: 12)),
+                const Text('By Bumi Lestari', style: TextStyle(fontSize: 12)),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -105,7 +105,7 @@ class EducationScreens extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Bantuan Sekolah Anak Terlantar',
+                      'Menolong Hewan Terlantar',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     IconButton(
@@ -120,7 +120,7 @@ class EducationScreens extends StatelessWidget {
                     ),
                   ],
                 ),
-                const Text('By Panti Asuhan Yadika, Surabaya', style: TextStyle(fontSize: 12)),
+                const Text('By Sahabat Alam', style: TextStyle(fontSize: 12)),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -161,7 +161,7 @@ class EducationScreens extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Wakaf Al-quran Pondok\nPesantren',
+                      'Alirkan Pahal lewat Sedekah\nPohon',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     IconButton(
@@ -176,7 +176,7 @@ class EducationScreens extends StatelessWidget {
                     ),
                   ],
                 ),
-                const Text('By Badan Wakaf Al-quran', style: TextStyle(fontSize: 12)),
+                const Text('By Bumi Lestari', style: TextStyle(fontSize: 12)),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

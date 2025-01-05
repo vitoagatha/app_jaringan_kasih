@@ -1,5 +1,11 @@
+import 'package:app_jaringan_kasih/screens/bencana_alam_screens.dart';
 import 'package:app_jaringan_kasih/screens/education_detail_screens.dart';
 import 'package:app_jaringan_kasih/screens/education_screens.dart';
+import 'package:app_jaringan_kasih/screens/health_screens.dart';
+import 'package:app_jaringan_kasih/screens/lingkungan_screens.dart';
+import 'package:app_jaringan_kasih/screens/rumah_ibadah_screens.dart';
+import 'package:app_jaringan_kasih/screens/zakat_screens.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreens extends StatelessWidget {
@@ -9,6 +15,7 @@ class HomeScreens extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -105,11 +112,12 @@ class DonationCard extends StatelessWidget {
           const Text(
             'Mulai melakukan pendanaan',
             style: TextStyle(
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
+
           const Text(
             'Ciptakan kebaikanmu',
             style: TextStyle(
@@ -117,10 +125,27 @@ class DonationCard extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {},
-            child: const Text('Donasi sekarang'),
+          const SizedBox(height: 24),
+          SizedBox(
+            child: ElevatedButton(
+              onPressed: (){
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomeScreens()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                "Donasi Sekarang",
+                style: TextStyle(fontSize: 14, color: Colors.teal),
+              )
+            ),
           ),
         ],
       ),
@@ -133,31 +158,105 @@ class CategoryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Column(
       children: [
-        _buildCategory(icon: Icons.apps, label: 'All', onTap: () {}),
-        _buildCategory(icon: Icons.health_and_safety_outlined, label: 'Kesehatan', onTap: () {}),
-        _buildCategory(
-          icon: Icons.school,
-          label: 'Edukasi',
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const EducationScreens()),
-            );
-          },
+        Row(
+          children: [
+            Expanded(
+              child: _buildCategory(
+                icon: FontAwesome.graduation_cap_solid,
+                label: 'Pendidikan',
+                color: Colors.teal,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const EducationScreens()),
+                  );
+                },
+              ),
+            ),
+            Expanded(
+              child: _buildCategory(
+                icon: FontAwesome.house_medical_solid,
+                color: Colors.teal,
+                label: 'Kesehatan',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HealthScreens()),
+                  );
+                },
+              ),
+            ),
+            Expanded(
+              child: _buildCategory(
+                icon: FontAwesome.hand_holding_dollar_solid,
+                label: 'Zakat',
+                color: Colors.teal,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ZakatScreens()),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildCategory(
+                icon: FontAwesome.tree_solid,
+                label: 'Lingkungan',
+                color: Colors.teal,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LingkunganScreens()),
+                  );
+                },
+              ),
+            ),
+            Expanded(
+              child: _buildCategory(
+                icon: FontAwesome.mosque_solid,
+                color: Colors.teal,
+                label: 'Rumah Ibadah',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const RumahIbadahScreens()),
+                  );
+                },
+              ),
+            ),
+            Expanded(
+              child: _buildCategory(
+                icon: FontAwesome.earth_europe_solid,
+                label: 'Bencana Alam',
+                color: Colors.teal,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const BencanaAlamScreens()),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  Widget _buildCategory({required IconData icon, required String label, required VoidCallback onTap}) {
+  Widget _buildCategory({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
         children: [
-          Icon(icon, size: 45),
+          Icon(icon, size: 30, color: color),
           Text(
             label,
             style: const TextStyle(fontSize: 16),
@@ -199,14 +298,84 @@ class PopularSection extends StatelessWidget {
                   );
                 },
                 child: Image.asset(
-                  'assets/images/chd1.jpeg',
+                  'assets/images/education1.png',
                   fit: BoxFit.fill,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Edukasi untuk anak miskin',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Edukasi untuk anak miskin',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: Icon(FontAwesome.bookmark),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Ditambahkan ke Wishlist'),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const Text('By Jaringan Kasih', style: TextStyle(fontSize: 12)),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildStat(label: 'Terkumpul', value: 'Rp. 1.200.000,00'),
+                  _buildStat(label: 'Target', value: 'Rp. 25.000.000,00'),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.black12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const EducationDetailScreens()),
+                  );
+                },
+                child: Image.asset(
+                  'assets/images/education1.png',
+                  fit: BoxFit.fill,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Edukasi untuk anak miskin',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: Icon(FontAwesome.bookmark),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Ditambahkan ke Wishlist'),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
               const Text('By Jaringan Kasih', style: TextStyle(fontSize: 12)),
               const SizedBox(height: 16),
