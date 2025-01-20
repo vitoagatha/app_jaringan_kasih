@@ -3,13 +3,25 @@ import 'package:app_jaringan_kasih/screens/education_detail_screens.dart';
 import 'package:app_jaringan_kasih/screens/education_screens.dart';
 import 'package:app_jaringan_kasih/screens/health_screens.dart';
 import 'package:app_jaringan_kasih/screens/lingkungan_screens.dart';
+import 'package:app_jaringan_kasih/screens/login_screens.dart';
+import 'package:app_jaringan_kasih/screens/profile_screens.dart';
 import 'package:app_jaringan_kasih/screens/rumah_ibadah_screens.dart';
 import 'package:app_jaringan_kasih/screens/zakat_screens.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:flutter/material.dart';
 
-class HomeScreens extends StatelessWidget {
+import 'whislist_screens.dart';
+import 'buat_pendanaan_screens.dart';
+
+class HomeScreens extends StatefulWidget {
   const HomeScreens({super.key});
+
+  @override
+  _HomeScreensState createState() => _HomeScreensState();
+}
+
+class _HomeScreensState extends State<HomeScreens>{
+  final List<Map<String, dynamic>> bookmarkedItems = [];
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +35,9 @@ class HomeScreens extends StatelessWidget {
           ),
         ],
       ),
-      drawer: const CustomDrawer(),
+      drawer: CustomDrawer(
+        bookmarkedItems: bookmarkedItems,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
@@ -31,7 +45,18 @@ class HomeScreens extends StatelessWidget {
           const SizedBox(height: 20),
           const CategoryRow(),
           const SizedBox(height: 20),
-          const PopularSection(),
+          PopularSection(
+            onBookmarkToggle: (item) {
+              setState(() {
+                if (bookmarkedItems.contains(item)) {
+                  bookmarkedItems.remove(item);
+                } else {
+                  bookmarkedItems.add(item);
+                }
+              });
+            },
+            bookmarkedItems: bookmarkedItems,
+          ),
         ],
       ),
     );
@@ -39,7 +64,9 @@ class HomeScreens extends StatelessWidget {
 }
 
 class CustomDrawer extends StatelessWidget {
-  const CustomDrawer({super.key});
+  final List<Map<String, dynamic>> bookmarkedItems;
+
+  const CustomDrawer({super.key, required this.bookmarkedItems});
 
   @override
   Widget build(BuildContext context) {
@@ -60,34 +87,96 @@ class CustomDrawer extends StatelessWidget {
                 ),
                 SizedBox(height: 10.0),
                 Text('Agus Salim', style: TextStyle(color: Colors.white)),
-                Text('agus.salim@gmail.com', style: TextStyle(color: Colors.white)),
               ],
             ),
           ),
           _buildDrawerItem(
+            title: 'Akun',
+            icon: Icons.account_circle,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfileScreens()),
+              );
+            },
+          ),
+          _buildDrawerItem(
             title: 'Buat Pendanaan',
-            icon: Icons.monetization_on,
-            onTap: () {},
+            icon: Icons.note_alt,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => BuatPendanaanScreens()),
+              );
+            },
           ),
           _buildDrawerItem(
             title: 'Wishlist',
             icon: Icons.bookmarks,
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WhislistScreens(
+                  bookmarkedItems: bookmarkedItems,
+                  ),
+                ),
+              );
+            },
           ),
           _buildDrawerItem(
             title: 'Daftar Transaksi',
-            icon: Icons.note_alt,
-            onTap: () {},
+            icon: Icons.my_library_books,
+            onTap: () {
+              _showAlertDialog(context);
+            },
+          ),
+          _buildDrawerItem(
+            title: 'Keluar',
+            icon: Icons.logout,
+            onTap: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreens()),
+                    (route) => false,
+              );
+            },
           ),
         ],
       ),
     );
   }
 
+  void _showAlertDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Container(
+              alignment: Alignment.center,
+              child: Text('Oopss...')
+          ),
+          content: Text("Maaf fitur masih dalam pengembangan."),
+          actions: [
+            TextButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildDrawerItem({required String title, required IconData icon, required VoidCallback onTap}) {
     return ListTile(
-      title: Text(title, style: const TextStyle(color: Colors.teal)),
-      leading: Icon(icon, color: Colors.teal),
+      title: Text(title, style: const TextStyle(color: Colors.black)),
+      leading: Icon(
+        icon,
+        color: icon == Icons.logout ? Colors.red : Colors.teal, // Merah untuk ikon logout
+      ),
       onTap: onTap,
     );
   }
@@ -268,10 +357,22 @@ class CategoryRow extends StatelessWidget {
 }
 
 class PopularSection extends StatelessWidget {
-  const PopularSection({super.key});
+  final Function(Map<String, dynamic>) onBookmarkToggle;
+  final List<Map<String, dynamic>> bookmarkedItems;
+
+  const PopularSection({
+    super.key,
+    required this.onBookmarkToggle,
+    required this.bookmarkedItems,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> items = [
+      {'id': 1, 'title': 'Edukasi untuk anak miskin', 'image': 'assets/images/education1.png'},
+      {'id': 2, 'title': 'Bantuan pendidikan anak', 'image': 'assets/images/education1.png'},
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -280,129 +381,39 @@ class PopularSection extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
         const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.black12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const EducationDetailScreens()),
-                  );
-                },
-                child: Image.asset(
-                  'assets/images/education1.png',
-                  fit: BoxFit.fill,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Edukasi untuk anak miskin',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: Icon(FontAwesome.bookmark),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Ditambahkan ke Wishlist'),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              const Text('By Jaringan Kasih', style: TextStyle(fontSize: 12)),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildStat(label: 'Terkumpul', value: 'Rp. 1.200.000,00'),
-                  _buildStat(label: 'Target', value: 'Rp. 25.000.000,00'),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.black12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const EducationDetailScreens()),
-                  );
-                },
-                child: Image.asset(
-                  'assets/images/education1.png',
-                  fit: BoxFit.fill,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Edukasi untuk anak miskin',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: Icon(FontAwesome.bookmark),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Ditambahkan ke Wishlist'),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              const Text('By Jaringan Kasih', style: TextStyle(fontSize: 12)),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildStat(label: 'Terkumpul', value: 'Rp. 1.200.000,00'),
-                  _buildStat(label: 'Target', value: 'Rp. 25.000.000,00'),
-                ],
-              ),
-            ],
-          ),
-        ),
+        for (var item in items)
+          _buildCard(item, bookmarkedItems.contains(item)),
       ],
     );
   }
 
-  Widget _buildStat({required String label, required String value}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        Text(value),
-      ],
+  Widget _buildCard(Map<String, dynamic> item, bool isBookmarked) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            item['title'],
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          IconButton(
+            icon: Icon(
+              isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+              color: isBookmarked ? Colors.teal : Colors.black,
+            ),
+            onPressed: () => onBookmarkToggle(item),
+          ),
+        ],
+      ),
     );
   }
 }
+
+

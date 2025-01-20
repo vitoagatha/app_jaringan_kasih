@@ -1,4 +1,5 @@
 import 'package:app_jaringan_kasih/screens/home_screens.dart';
+import 'package:app_jaringan_kasih/screens/login_screens.dart';
 import 'package:app_jaringan_kasih/screens/signup_screens.dart';
 import 'package:flutter/material.dart';
 
@@ -49,7 +50,7 @@ class WelcomeScreens extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SignupScreens()),
+                    MaterialPageRoute(builder: (context) => const LoginScreens()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
