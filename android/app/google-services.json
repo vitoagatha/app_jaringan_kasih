@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "348867105291",
+    "project_id": "jaringan-kasih-app",
+    "storage_bucket": "jaringan-kasih-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:348867105291:android:ec20e3167a9dd7128eed0e",
+        "android_client_info": {
+          "package_name": "com.example.app_jaringan_kasih"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAeMD65VTsdSE1M5DjZJ08jpwFiMDDg0ik"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 
-class BuatPendanaanScreens extends StatelessWidget{
-  const BuatPendanaanScreens ({super.key});
+class BuatPendanaanScreens extends StatefulWidget {
+  const BuatPendanaanScreens({super.key});
+
+  @override
+  _BuatPendanaanScreensState createState() => _BuatPendanaanScreensState();
+}
+
+class _BuatPendanaanScreensState extends State<BuatPendanaanScreens> {
+  String? dropdownValue;
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return Scaffold(
       appBar: AppBar(
         title: Text('Buat Pendanaan'),
@@ -45,6 +51,33 @@ class BuatPendanaanScreens extends StatelessWidget{
             ),
             SizedBox(height: 8),
             Text(
+              'Pilih kategori',
+              style: TextStyle(fontSize: 16),
+            ),
+            DropdownButtonFormField<String>(
+              hint: const Text('Pilih kategori'),
+              value: dropdownValue,
+              onChanged: (String? newValue) {
+                setState(() {
+                  dropdownValue = newValue!;
+                });
+              },
+              items: <String>[
+                'Pendidikan',
+                'Kesehatan',
+                'Zakat',
+                'Lingkungan',
+                'Rumah Ibadah',
+                'Bencana Alam'
+              ].map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 8),
+            Text(
               'Deskripsi',
               style: TextStyle(fontSize: 16),
             ),
@@ -57,7 +90,6 @@ class BuatPendanaanScreens extends StatelessWidget{
                 maxLines: 5,
               ),
             ),
-
             SizedBox(height: 8),
             Text(
               'Target pendanaan',
@@ -69,7 +101,6 @@ class BuatPendanaanScreens extends StatelessWidget{
                 hintText: 'Masukkan target',
               ),
             ),
-
           ],
         ),
       ),

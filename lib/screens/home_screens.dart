@@ -1,4 +1,5 @@
 import 'package:app_jaringan_kasih/screens/bencana_alam_screens.dart';
+import 'package:app_jaringan_kasih/screens/category_screens.dart';
 import 'package:app_jaringan_kasih/screens/education_detail_screens.dart';
 import 'package:app_jaringan_kasih/screens/education_screens.dart';
 import 'package:app_jaringan_kasih/screens/health_screens.dart';
@@ -259,7 +260,7 @@ class CategoryRow extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const EducationScreens()),
+                    MaterialPageRoute(builder: (context) => CategoryScreens()),
                   );
                 },
               ),

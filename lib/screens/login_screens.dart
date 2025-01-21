@@ -1,17 +1,64 @@
-import 'package:app_jaringan_kasih/screens/home_screens.dart';
-import 'package:app_jaringan_kasih/screens/signup_screens.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'home_screens.dart';
+import 'signup_screens.dart';
 
-class LoginScreens extends StatelessWidget {
+class LoginScreens extends StatefulWidget {
   const LoginScreens({super.key});
+
+  @override
+  _LoginScreensState createState() => _LoginScreensState();
+}
+
+class _LoginScreensState extends State<LoginScreens> {
+  final _auth = FirebaseAuth.instance;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  bool _isLoading = false;
+
+  // Fungsi untuk login
+  Future<void> _login() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _auth.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Berhasil login, navigasikan ke layar utama
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreens()),
+            (route) => false,
+      );
+    } on FirebaseAuthException catch (e) {
+      // Menangani kesalahan login
+      String message = 'Terjadi kesalahan, silakan coba lagi.';
+      if (e.code == 'user-not-found') {
+        message = 'Pengguna tidak ditemukan.';
+      } else if (e.code == 'wrong-password') {
+        message = 'Password salah.';
+      } else if (e.code == 'invalid-email') {
+        message = 'Email tidak valid.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   centerTitle: true,
-      //   title: const Text("Login"),
-      // ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -26,10 +73,11 @@ class LoginScreens extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 100),
-            // Username/Email TextField
+            // Email TextField
             TextField(
+              controller: _emailController,
               decoration: InputDecoration(
-                hintText: "Nama atau Email",
+                hintText: "Email",
                 prefixIcon: const Icon(Icons.person),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -41,6 +89,7 @@ class LoginScreens extends StatelessWidget {
             const SizedBox(height: 16),
             // Password TextField
             TextField(
+              controller: _passwordController,
               obscureText: true,
               decoration: InputDecoration(
                 hintText: "Password",
@@ -53,12 +102,11 @@ class LoginScreens extends StatelessWidget {
                 fillColor: Colors.grey[200],
               ),
             ),
-
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () {
-                  // Forgot password action
+                  // Tambahkan logika untuk lupa password di sini (opsional)
                 },
                 child: const Text(
                   "Lupa password?",
@@ -66,17 +114,12 @@ class LoginScreens extends StatelessWidget {
                 ),
               ),
             ),
-            // const SizedBox(height: 4),
+            const SizedBox(height: 20),
             // Login Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomeScreens()),
-                  );
-                },
+                onPressed: _isLoading ? null : _login,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.teal,
                   padding: const EdgeInsets.symmetric(vertical: 12),
@@ -84,7 +127,11 @@ class LoginScreens extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
+                child: _isLoading
+                    ? const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                )
+                    : const Text(
                   "Masuk",
                   style: TextStyle(fontSize: 18, color: Colors.white),
                 ),
@@ -114,5 +161,12 @@ class LoginScreens extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }
