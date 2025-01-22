@@ -195,7 +195,7 @@ class DonationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(8.0),
-      height: 155,
+      height: 170,
       decoration: BoxDecoration(
         color: Colors.teal,
         borderRadius: BorderRadius.circular(8),

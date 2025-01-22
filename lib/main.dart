@@ -40,7 +40,49 @@ class MyApp extends StatelessWidget {
           fillColor: Colors.grey[200],
         ),
       ),
-      home: const AuthWrapper(),
+      home: const SplashScreens(),
+    );
+  }
+}
+
+/// Splash Screen
+class SplashScreens extends StatefulWidget {
+  const SplashScreens({super.key});
+
+  @override
+  State<SplashScreens> createState() => _SplashScreensState();
+}
+
+class _SplashScreensState extends State<SplashScreens> {
+  @override
+  void initState() {
+    super.initState();
+
+    // Navigasi ke AuthWrapper setelah 3 detik
+    Future.delayed(const Duration(seconds: 3), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const AuthWrapper()),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.teal,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/icon_splash.png',
+              width: 150,
+              height: 150,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -54,13 +96,12 @@ class AuthWrapper extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // Jika pengguna login, arahkan ke HomeScreens
         if (snapshot.connectionState == ConnectionState.active) {
           final User? user = snapshot.data;
           if (user == null) {
-            return const WelcomeScreens();
+            return const WelcomeScreens(); // Jika tidak login, ke WelcomeScreens
           } else {
-            return const HomeScreens();
+            return const HomeScreens(); // Jika login, ke HomeScreens
           }
         }
 

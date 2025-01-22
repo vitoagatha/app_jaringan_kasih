@@ -81,7 +81,7 @@ class _CategoryScreensState extends State<CategoryScreens> {
               final targetAmount = category['targetAmount'] ?? 0;
 
               return CategoryCard(
-                image: category['image'] ?? 'assets/images/default.png',
+                image: category['image'] ?? 'assets/images/education1.png',
                 title: category['judul'] ?? 'Tanpa Judul',
                 pengajuPendanaan: category['pengaju'] ?? 'Anonim',
                 kategori: category['kategori'] ?? 'Umum',
