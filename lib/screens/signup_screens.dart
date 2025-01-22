@@ -25,10 +25,15 @@ class _SignupScreensState extends State<SignupScreens> {
     });
 
     try {
-      await _auth.createUserWithEmailAndPassword(
+      // Membuat akun pengguna baru
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      // Update profil pengguna dengan nama
+      await userCredential.user?.updateDisplayName(_nameController.text.trim());
+      await userCredential.user?.reload(); // Reload untuk memperbarui data pengguna
 
       // Berhasil mendaftar, navigasikan ke layar utama
       Navigator.pushAndRemoveUntil(

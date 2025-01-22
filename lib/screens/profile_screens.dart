@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileScreens extends StatelessWidget {
   const ProfileScreens({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final User? user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Akun'),
@@ -24,7 +27,7 @@ class ProfileScreens extends StatelessWidget {
                 children: [
                   const CircleAvatar(
                     radius: 60,
-                    backgroundImage: AssetImage('assets/images/profile_picture.png'), // Ganti dengan gambar Anda
+                    backgroundImage: AssetImage('assets/images/profile_picture.png'),
                   ),
                   Container(
                     decoration: const BoxDecoration(
@@ -41,16 +44,16 @@ class ProfileScreens extends StatelessWidget {
               _buildProfileField(
                 context,
                 label: "Nama",
-                value: "Agus",
+                value: user?.displayName ?? "Nama tidak tersedia",
                 onTap: () {
-                  // Aksi saat diklik, misalnya buka halaman edit
+
                 },
               ),
               // Email Field
               _buildProfileField(
                 context,
                 label: "Email",
-                value: "Agussalim@gmail.com",
+                value: user?.email ?? "Email tidak tersedia",
                 onTap: () {
                   // Aksi saat diklik, misalnya buka halaman edit
                 },
@@ -91,7 +94,7 @@ class ProfileScreens extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+
               ],
             ),
           ),

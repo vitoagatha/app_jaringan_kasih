@@ -1,60 +1,104 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import '../widgets/category_card.dart';
-import 'education_detail_screens.dart';
+import 'category_detail_screens.dart';
 
-class CategoryScreens extends StatelessWidget {
-  final List<Map<String, String>> categories = [
-    {
-      'image': 'assets/images/education1.png',
-      'title': 'Edukasi untuk anak miskin',
-      'pengajuPendanaan': 'Pondok Yatim',
-      'kategori': 'Pendidikan',  // Category label (e.g., "Pendidikan")
-      'description': 'A detailed description of the project',
-      'collectedAmount': 'Rp. 1.200.000,00',
-      'targetAmount': 'Rp. 25.000.000,00',
-    },
-    {
-      'image': 'assets/images/education1.png',
-      'title': 'Bantuan Sekolah Anak Terlantar',
-      'pengajuPendanaan': 'Panti Asuhan Yadika, Surabaya',
-      'kategori': 'Pendidikan',  // Category label
-      'description': 'A detailed description of the project',
-      'collectedAmount': 'Rp. 1.200.000,00',
-      'targetAmount': 'Rp. 25.000.000,00',
-    },
-    // Add more categories here...
-  ];
+class CategoryScreens extends StatefulWidget {
+  final String category;
+
+  const CategoryScreens({super.key, required this.category});
+
+  @override
+  State<CategoryScreens> createState() => _CategoryScreensState();
+}
+
+class _CategoryScreensState extends State<CategoryScreens> {
+  final Set<String> _wishlistIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchWishlist();
+  }
+
+  Future<void> _fetchWishlist() async {
+    final wishlistSnapshot = await FirebaseFirestore.instance.collection('wishlist').get();
+    setState(() {
+      _wishlistIds.addAll(wishlistSnapshot.docs.map((doc) => doc.id));
+    });
+  }
+
+  bool _isInWishlist(String id) {
+    return _wishlistIds.contains(id);
+  }
+
+  Future<void> _toggleWishlist(String id, Map<String, dynamic> data) async {
+    if (_isInWishlist(id)) {
+      // Jika ada, hapus dari wishlist
+      await FirebaseFirestore.instance.collection('wishlist').doc(id).delete();
+      setState(() {
+        _wishlistIds.remove(id);
+      });
+    } else {
+      // Jika tidak ada, tambahkan ke wishlist
+      await FirebaseFirestore.instance.collection('wishlist').doc(id).set(data);
+      setState(() {
+        _wishlistIds.add(id);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Kategori Pendanaan'),
+        title: Text(widget.category),
         centerTitle: true,
-
+        backgroundColor: Colors.teal,
       ),
-      body: ListView.builder(
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          return CategoryCard(
-            image: categories[index]['image']!,
-            title: categories[index]['title']!,
-            pengajuPendanaan: categories[index]['pengajuPendanaan']!,  // Pass pengajuPendanaan
-            kategori: categories[index]['kategori']!,  // Pass kategori
-            description: categories[index]['description']!,
-            collectedAmount: categories[index]['collectedAmount']!,
-            targetAmount: categories[index]['targetAmount']!,
-            onTap: () {
-              // Navigate to detail screen when tapped
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const EducationDetailScreens()),
-              );
-            },
-            onBookmark: () {
-              // Handle bookmark action
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Ditambahkan ke Wishlist')),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('pendanaan')
+            .where('kategori', isEqualTo: widget.category)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text('Belum ada pendanaan di kategori ${widget.category}.'));
+          }
+
+          final filteredCategories = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: filteredCategories.length,
+            itemBuilder: (context, index) {
+              final doc = filteredCategories[index];
+              final category = doc.data() as Map<String, dynamic>;
+              final collectedAmount = category['collectedAmount'] ?? 0;
+              final targetAmount = category['targetAmount'] ?? 0;
+
+              return CategoryCard(
+                image: category['image'] ?? 'assets/images/default.png',
+                title: category['judul'] ?? 'Tanpa Judul',
+                pengajuPendanaan: category['pengaju'] ?? 'Anonim',
+                kategori: category['kategori'] ?? 'Umum',
+                collectedAmount: collectedAmount,
+                targetAmount: targetAmount,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CategoryDetailScreens(data: category),
+                    ),
+                  );
+                },
+                onBookmark: () {
+                  _toggleWishlist(doc.id, category);
+                },
+                isBookmarked: _isInWishlist(doc.id),
               );
             },
           );

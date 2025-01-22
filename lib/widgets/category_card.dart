@@ -1,30 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class CategoryCard extends StatelessWidget {
   final String image;
   final String title;
-  final String pengajuPendanaan;  // Update this to reflect the pengaju pendanaan (fundraiser)
-  final String kategori;  // Kategori label
-  final String description;
-  final String collectedAmount;
-  final String targetAmount;
+  final String pengajuPendanaan;
+  final String kategori;
+  final int collectedAmount;
+  final int targetAmount;
   final VoidCallback onTap;
   final VoidCallback onBookmark;
+  final bool isBookmarked;
 
   const CategoryCard({
+    super.key,
     required this.image,
     required this.title,
-    required this.pengajuPendanaan,  // Update to reflect the pengaju pendanaan
-    required this.kategori,  // Kategori value (like "Pendidikan")
-    required this.description,
+    required this.pengajuPendanaan,
+    required this.kategori,
     required this.collectedAmount,
     required this.targetAmount,
     required this.onTap,
     required this.onBookmark,
+    required this.isBookmarked,
   });
 
   @override
   Widget build(BuildContext context) {
+    final formatter = NumberFormat.decimalPattern('id'); // Formatter untuk angka
+
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
@@ -39,11 +43,24 @@ class CategoryCard extends StatelessWidget {
             onTap: onTap,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
+              child: image.isNotEmpty
+                  ? Image.network(
                 image,
                 fit: BoxFit.cover,
                 width: double.infinity,
-                height: 180,  // Adjust the height to fit well in the layout
+                height: 180,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return const Center(child: CircularProgressIndicator());
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Icon(Icons.broken_image, size: 80, color: Colors.grey),
+                  );
+                },
+              )
+                  : const Center(
+                child: Icon(Icons.image, size: 80, color: Colors.grey),
               ),
             ),
           ),
@@ -51,19 +68,26 @@ class CategoryCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               IconButton(
-                icon: Icon(Icons.bookmark_border),
+                icon: Icon(
+                  isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  color: isBookmarked ? Colors.black : null,
+                ),
                 onPressed: onBookmark,
               ),
             ],
           ),
           Text(
-            'By $pengajuPendanaan',  // Update to show "Pengaju Pendanaan"
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+            'By $pengajuPendanaan',
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
           ),
           const SizedBox(height: 8),
           Row(
@@ -75,25 +99,24 @@ class CategoryCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  kategori,  // Show the category (e.g., "Pendidikan")
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+                  kategori,
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Text(
-            description,
-            style: TextStyle(fontSize: 14, color: Colors.black54),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStat(label: 'Terkumpul', value: collectedAmount),
-              _buildStat(label: 'Target', value: targetAmount),
+              _buildStat(
+                label: 'Terkumpul',
+                value: 'Rp ${formatter.format(collectedAmount)}',
+              ),
+              _buildStat(
+                label: 'Target',
+                value: 'Rp ${formatter.format(targetAmount)}',
+              ),
             ],
           ),
         ],
@@ -105,8 +128,8 @@ class CategoryCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.black45)),
-        Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.black45)),
+        Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ],
     );
   }

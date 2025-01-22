@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class BuatPendanaanScreens extends StatefulWidget {
@@ -8,7 +9,42 @@ class BuatPendanaanScreens extends StatefulWidget {
 }
 
 class _BuatPendanaanScreensState extends State<BuatPendanaanScreens> {
-  String? dropdownValue;
+  final _judulController = TextEditingController();
+  final _pengajuController = TextEditingController();
+  final _deskripsiController = TextEditingController();
+  final _targetController = TextEditingController();
+  String? _kategori;
+
+  Future<void> _simpanPendanaan() async {
+    if (_judulController.text.isNotEmpty &&
+        _pengajuController.text.isNotEmpty &&
+        _kategori != null &&
+        _deskripsiController.text.isNotEmpty &&
+        _targetController.text.isNotEmpty) {
+      try {
+        await FirebaseFirestore.instance.collection('pendanaan').add({
+          'judul': _judulController.text,
+          'pengaju': _pengajuController.text,
+          'kategori': _kategori,
+          'deskripsi': _deskripsiController.text,
+          'collectedAmount': 0,
+          'targetAmount': int.parse(_targetController.text),
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Pendanaan berhasil disimpan')),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Terjadi kesalahan: $e')),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Harap isi semua field')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +54,7 @@ class _BuatPendanaanScreensState extends State<BuatPendanaanScreens> {
         centerTitle: true,
         backgroundColor: Colors.teal,
       ),
-      body: Container(
+      body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -28,78 +64,54 @@ class _BuatPendanaanScreensState extends State<BuatPendanaanScreens> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
-            Text(
-              'Judul pendanaan',
-              style: TextStyle(fontSize: 16),
-            ),
             TextField(
+              controller: _judulController,
               decoration: InputDecoration(
+                labelText: 'Judul Pendanaan',
                 border: OutlineInputBorder(),
-                hintText: 'Masukkan judul',
               ),
             ),
             SizedBox(height: 8),
-            Text(
-              'Pengaju pendanaan',
-              style: TextStyle(fontSize: 16),
-            ),
             TextField(
+              controller: _pengajuController,
               decoration: InputDecoration(
+                labelText: 'Pengaju Pendanaan',
                 border: OutlineInputBorder(),
-                hintText: 'Masukkan nama pengaju',
               ),
             ),
             SizedBox(height: 8),
-            Text(
-              'Pilih kategori',
-              style: TextStyle(fontSize: 16),
-            ),
             DropdownButtonFormField<String>(
-              hint: const Text('Pilih kategori'),
-              value: dropdownValue,
-              onChanged: (String? newValue) {
+              value: _kategori,
+              decoration: InputDecoration(labelText: 'Pilih Kategori'),
+              items: ['Pendidikan', 'Kesehatan', 'Zakat', 'Lingkungan', 'Rumah Ibadah', 'Bencana Alam']
+                  .map((kategori) => DropdownMenuItem(
+                value: kategori,
+                child: Text(kategori),
+              ))
+                  .toList(),
+              onChanged: (value) {
                 setState(() {
-                  dropdownValue = newValue!;
+                  _kategori = value;
                 });
               },
-              items: <String>[
-                'Pendidikan',
-                'Kesehatan',
-                'Zakat',
-                'Lingkungan',
-                'Rumah Ibadah',
-                'Bencana Alam'
-              ].map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
             ),
             SizedBox(height: 8),
-            Text(
-              'Deskripsi',
-              style: TextStyle(fontSize: 16),
-            ),
-            SizedBox(
-              child: TextField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Masukkan Deskripsi',
-                ),
-                maxLines: 5,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Target pendanaan',
-              style: TextStyle(fontSize: 16),
-            ),
             TextField(
+              controller: _deskripsiController,
               decoration: InputDecoration(
+                labelText: 'Deskripsi',
                 border: OutlineInputBorder(),
-                hintText: 'Masukkan target',
               ),
+              maxLines: 5,
+            ),
+            SizedBox(height: 8),
+            TextField(
+              controller: _targetController,
+              decoration: InputDecoration(
+                labelText: 'Target Pendanaan',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.number,
             ),
           ],
         ),
@@ -107,17 +119,12 @@ class _BuatPendanaanScreensState extends State<BuatPendanaanScreens> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ElevatedButton(
-          onPressed: () {
-            // TODO: Implement donation logic
-          },
+          onPressed: _simpanPendanaan,
           style: ElevatedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 45),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            minimumSize: Size(double.infinity, 45),
             backgroundColor: Colors.teal,
           ),
-          child: const Text('Ajukan', style: TextStyle(color: Colors.white)),
+          child: Text('Ajukan', style: TextStyle(color: Colors.white)),
         ),
       ),
     );

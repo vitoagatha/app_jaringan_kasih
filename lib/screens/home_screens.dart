@@ -1,17 +1,16 @@
-import 'package:app_jaringan_kasih/screens/bencana_alam_screens.dart';
+import 'package:app_jaringan_kasih/screens/about_screens.dart';
 import 'package:app_jaringan_kasih/screens/category_screens.dart';
-import 'package:app_jaringan_kasih/screens/education_detail_screens.dart';
-import 'package:app_jaringan_kasih/screens/education_screens.dart';
-import 'package:app_jaringan_kasih/screens/health_screens.dart';
-import 'package:app_jaringan_kasih/screens/lingkungan_screens.dart';
 import 'package:app_jaringan_kasih/screens/login_screens.dart';
 import 'package:app_jaringan_kasih/screens/profile_screens.dart';
-import 'package:app_jaringan_kasih/screens/rumah_ibadah_screens.dart';
-import 'package:app_jaringan_kasih/screens/zakat_screens.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-import 'whislist_screens.dart';
+import '../widgets/category_card.dart';
+import 'category_detail_screens.dart';
+import 'wishlist_screens.dart';
 import 'buat_pendanaan_screens.dart';
 
 class HomeScreens extends StatefulWidget {
@@ -47,16 +46,7 @@ class _HomeScreensState extends State<HomeScreens>{
           const CategoryRow(),
           const SizedBox(height: 20),
           PopularSection(
-            onBookmarkToggle: (item) {
-              setState(() {
-                if (bookmarkedItems.contains(item)) {
-                  bookmarkedItems.remove(item);
-                } else {
-                  bookmarkedItems.add(item);
-                }
-              });
-            },
-            bookmarkedItems: bookmarkedItems,
+
           ),
         ],
       ),
@@ -71,23 +61,30 @@ class CustomDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          const DrawerHeader(
+          Container(
             decoration: BoxDecoration(color: Colors.teal),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                SizedBox(height: 50.0),
                 CircleAvatar(
-                  radius: 30.0,
+                  radius: 35.0,
                   backgroundColor: Colors.white,
-                  child: Icon(Icons.person, color: Colors.teal, size: 40.0),
+                  child: Icon(Icons.person, color: Colors.teal, size: 50.0),
                 ),
-                SizedBox(height: 10.0),
-                Text('Agus Salim', style: TextStyle(color: Colors.white)),
+                const SizedBox(height: 10),
+                Text(
+                  FirebaseAuth.instance.currentUser?.displayName ?? 'Nama Tidak Tersedia', // Menampilkan nama pengguna
+                  style: const TextStyle(color: Colors.white, fontSize: 24),
+                ),
               ],
             ),
           ),
@@ -118,9 +115,7 @@ class CustomDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => WhislistScreens(
-                  bookmarkedItems: bookmarkedItems,
-                  ),
+                  builder: (context) => WishlistScreen(),
                 ),
               );
             },
@@ -130,6 +125,16 @@ class CustomDrawer extends StatelessWidget {
             icon: Icons.my_library_books,
             onTap: () {
               _showAlertDialog(context);
+            },
+          ),
+          _buildDrawerItem(
+            title: 'Tentang Kami',
+            icon: Icons.info,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AboutScreens()),
+              );
             },
           ),
           _buildDrawerItem(
@@ -176,7 +181,7 @@ class CustomDrawer extends StatelessWidget {
       title: Text(title, style: const TextStyle(color: Colors.black)),
       leading: Icon(
         icon,
-        color: icon == Icons.logout ? Colors.red : Colors.teal, // Merah untuk ikon logout
+        color: icon == Icons.logout ? Colors.red : Colors.teal,
       ),
       onTap: onTap,
     );
@@ -260,7 +265,7 @@ class CategoryRow extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => CategoryScreens()),
+                    MaterialPageRoute(builder: (context) => CategoryScreens(category: 'Pendidikan')),
                   );
                 },
               ),
@@ -273,7 +278,7 @@ class CategoryRow extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const HealthScreens()),
+                    MaterialPageRoute(builder: (context) => const CategoryScreens(category: 'Kesehatan')),
                   );
                 },
               ),
@@ -286,7 +291,7 @@ class CategoryRow extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ZakatScreens()),
+                    MaterialPageRoute(builder: (context) => const CategoryScreens(category: 'Zakat')),
                   );
                 },
               ),
@@ -304,7 +309,7 @@ class CategoryRow extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const LingkunganScreens()),
+                    MaterialPageRoute(builder: (context) => const CategoryScreens(category: 'Lingkungan')),
                   );
                 },
               ),
@@ -317,7 +322,7 @@ class CategoryRow extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const RumahIbadahScreens()),
+                    MaterialPageRoute(builder: (context) => const CategoryScreens(category: 'Rumah Ibadah')),
                   );
                 },
               ),
@@ -330,7 +335,7 @@ class CategoryRow extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const BencanaAlamScreens()),
+                    MaterialPageRoute(builder: (context) => const CategoryScreens(category: 'Bencana Alam')),
                   );
                 },
               ),
@@ -357,23 +362,49 @@ class CategoryRow extends StatelessWidget {
   }
 }
 
-class PopularSection extends StatelessWidget {
-  final Function(Map<String, dynamic>) onBookmarkToggle;
-  final List<Map<String, dynamic>> bookmarkedItems;
+class PopularSection extends StatefulWidget {
+  const PopularSection({super.key});
 
-  const PopularSection({
-    super.key,
-    required this.onBookmarkToggle,
-    required this.bookmarkedItems,
-  });
+  @override
+  State<PopularSection> createState() => _PopularSectionState();
+}
+
+class _PopularSectionState extends State<PopularSection> {
+  final Set<String> _wishlistIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchWishlist();
+  }
+
+  Future<void> _fetchWishlist() async {
+    final wishlistSnapshot = await FirebaseFirestore.instance.collection('wishlist').get();
+    setState(() {
+      _wishlistIds.addAll(wishlistSnapshot.docs.map((doc) => doc.id));
+    });
+  }
+
+  bool _isInWishlist(String id) {
+    return _wishlistIds.contains(id);
+  }
+
+  Future<void> _toggleWishlist(String id, Map<String, dynamic> data) async {
+    if (_isInWishlist(id)) {
+      await FirebaseFirestore.instance.collection('wishlist').doc(id).delete();
+      setState(() {
+        _wishlistIds.remove(id);
+      });
+    } else {
+      await FirebaseFirestore.instance.collection('wishlist').doc(id).set(data);
+      setState(() {
+        _wishlistIds.add(id);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> items = [
-      {'id': 1, 'title': 'Edukasi untuk anak miskin', 'image': 'assets/images/education1.png'},
-      {'id': 2, 'title': 'Bantuan pendidikan anak', 'image': 'assets/images/education1.png'},
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -382,37 +413,56 @@ class PopularSection extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
         const SizedBox(height: 16),
-        for (var item in items)
-          _buildCard(item, bookmarkedItems.contains(item)),
-      ],
-    );
-  }
+        StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance.collection('pendanaan').snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return const Center(child: Text('Terjadi kesalahan saat memuat data.'));
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(child: Text('Belum ada pendanaan yang tersedia.'));
+            }
 
-  Widget _buildCard(Map<String, dynamic> item, bool isBookmarked) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8.0),
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.black12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            item['title'],
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          IconButton(
-            icon: Icon(
-              isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-              color: isBookmarked ? Colors.teal : Colors.black,
-            ),
-            onPressed: () => onBookmarkToggle(item),
-          ),
-        ],
-      ),
+            final popularItems = snapshot.data!.docs;
+
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: popularItems.length,
+              itemBuilder: (context, index) {
+                final doc = popularItems[index];
+                final item = doc.data() as Map<String, dynamic>;
+                final collectedAmount = item['collectedAmount'] ?? 0;
+                final targetAmount = item['targetAmount'] ?? 0;
+
+                return CategoryCard(
+                  image: item['image'] ?? 'assets/images/default.png',
+                  title: item['judul'] ?? 'Tanpa Judul',
+                  pengajuPendanaan: item['pengaju'] ?? 'Anonim',
+                  kategori: item['kategori'] ?? 'Umum',
+                  collectedAmount: collectedAmount,
+                  targetAmount: targetAmount,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CategoryDetailScreens(data: item),
+                      ),
+                    );
+                  },
+                  onBookmark: () {
+                    _toggleWishlist(doc.id, item);
+                  },
+                  isBookmarked: _isInWishlist(doc.id),
+                );
+              },
+            );
+          },
+        ),
+      ],
     );
   }
 }

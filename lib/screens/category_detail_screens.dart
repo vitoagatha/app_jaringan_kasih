@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Import intl package
 
-class EducationDetailScreens extends StatelessWidget {
-  const EducationDetailScreens({super.key});
+class CategoryDetailScreens extends StatelessWidget {
+  final Map<String, dynamic> data;
+
+  const CategoryDetailScreens({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
-    // final List<String> imagePaths = [
-    //   'assets/images/children_donate1.jpeg',
-    //   'assets/images/children_donate2.jpg',
-    //   'assets/images/welcome_screens1.png',
-    // ];
+    // Formatter for formatting numbers
+    final formatter = NumberFormat.decimalPattern('id');
+
+    // Format collectedAmount and targetAmount
+    final collectedAmount = formatter.format(data['collectedAmount'] ?? 0);
+    final targetAmount = formatter.format(data['targetAmount'] ?? 0);
 
     return Scaffold(
       appBar: AppBar(
@@ -19,31 +23,49 @@ class EducationDetailScreens extends StatelessWidget {
             Navigator.pop(context);
           },
         ),
+        // title: Text(data['judul'] ?? 'Detail Pendanaan'),
+        centerTitle: true,
+        backgroundColor: Colors.teal,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          // Static Image Placeholder
           ClipRRect(
             borderRadius: BorderRadius.circular(12.0),
             child: Image.asset(
-              'assets/images/education1.png',
+              data['image'] ?? 'assets/images/default.png',
               fit: BoxFit.cover,
               width: double.infinity,
               height: 200.0,
             ),
           ),
           const SizedBox(height: 16),
+
           // Title
-          const Text(
-            'Edukasi untuk Anak Miskin',
-            style: TextStyle(
+          Text(
+            data['judul'] ?? 'Tanpa Judul',
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 24,
             ),
           ),
           const SizedBox(height: 8),
-          // Terkumpul dan Target
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Pengaju: ${data['pengaju'] ?? 'Anonim'}',
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              Text(
+                'Kategori: ${data['kategori'] ?? 'Umum'}',
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+          const Divider(height: 32),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
@@ -60,24 +82,26 @@ class EducationDetailScreens extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
+            children: [
               Text(
-                'Rp 10.000.000',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
+                'Rp $collectedAmount',
+                style: const TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
               ),
               Text(
-                'Rp 20.000.000',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
+                'Rp $targetAmount',
+                style: const TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
               ),
             ],
           ),
           const Divider(height: 32),
-          // Description
-          const Text(
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, '
-                'quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. '
-                'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+
+          // Description Text
+          Text(
+            data['deskripsi'] ?? 'Deskripsi tidak tersedia',
             textAlign: TextAlign.justify,
+            style: const TextStyle(fontSize: 14),
           ),
         ],
       ),
