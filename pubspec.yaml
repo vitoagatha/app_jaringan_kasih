@@ -69,6 +69,7 @@ flutter:
     - assets/images/education1.png
     - assets/images/education2.jpeg
     - assets/images/icon_splash.png
+    - assets/images/icon_launcher2.png
 
 
   # To add assets to your application, add an assets section, like this:

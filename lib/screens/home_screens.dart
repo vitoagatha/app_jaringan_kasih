@@ -1,6 +1,7 @@
 import 'package:app_jaringan_kasih/screens/about_screens.dart';
 import 'package:app_jaringan_kasih/screens/category_screens.dart';
 import 'package:app_jaringan_kasih/screens/login_screens.dart';
+import 'package:app_jaringan_kasih/screens/popular_section_screens.dart';
 import 'package:app_jaringan_kasih/screens/profile_screens.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -226,7 +227,7 @@ class DonationCard extends StatelessWidget {
               onPressed: (){
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => HomeScreens()),
+                  MaterialPageRoute(builder: (context) => const PopularSectionScreens()),
                 );
               },
               style: ElevatedButton.styleFrom(

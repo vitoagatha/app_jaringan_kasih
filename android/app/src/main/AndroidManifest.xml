@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="app_jaringan_kasih"
+        android:label="Jaringan Kasih"
         android:name="${applicationName}"
         android:icon="@mipmap/icon_launcher">
         <activity
