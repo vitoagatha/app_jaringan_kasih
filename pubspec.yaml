@@ -1,5 +1,5 @@
 name: app_jaringan_kasih
-description: "A new Flutter project."
+description: "Jaringan Kasih: aplikasi belajar pendanaan dengan backend Laravel lokal."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -32,14 +32,6 @@ dependencies:
     sdk: flutter
 
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
-  carousel_slider: ^4.2.1
-  icons_plus: ^5.0.0
-  firebase_core: ^3.10.0
-  firebase_auth: ^5.4.0
-  cloud_firestore: ^5.6.1
   intl: ^0.20.1
   flutter_secure_storage: 9.2.4
   image_picker: 1.1.2
@@ -65,13 +57,6 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
-  assets:
-    - assets/images/welcome_screens1.png
-    - assets/images/children_donate1.jpeg
-    - assets/images/education1.png
-    - assets/images/education2.jpeg
-    - assets/images/icon_splash.png
-    - assets/images/icon_launcher2.png
 
 
   # To add assets to your application, add an assets section, like this:

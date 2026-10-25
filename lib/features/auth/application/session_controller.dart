@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/api_client.dart';
 import '../data/auth_repository.dart';
+import '../../funding/data/funding_repository.dart';
 
 enum SessionPhase { restoring, signedOut, signedIn, unavailable }
 
@@ -14,8 +15,11 @@ class SessionController extends ChangeNotifier {
   bool busy = false;
   bool _disposed = false;
   bool externalInteraction = false;
+  final FundingGateway? funding;
 
-  SessionController(this._auth);
+  SessionController(this._auth, {FundingGateway? fundingGateway})
+      : funding =
+            fundingGateway ?? (_auth is AuthRepository ? _auth.funding : null);
 
   AccountGateway get _account => _auth as AccountGateway;
   Uri? get photoUri => user == null ? null : _account.photoUri(user!);
@@ -85,10 +89,12 @@ class SessionController extends ChangeNotifier {
     }
   }
 
-  Future<void> restore() async {
+  Future<void> restore({bool keepView = false}) async {
     if (busy || _disposed) return;
     busy = true;
-    phase = SessionPhase.restoring;
+    if (!keepView || phase != SessionPhase.signedIn || user == null) {
+      phase = SessionPhase.restoring;
+    }
     error = null;
     notifyListeners();
     try {

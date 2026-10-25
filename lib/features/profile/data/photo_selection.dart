@@ -6,8 +6,9 @@ import '../../../core/network/api_exception.dart';
 enum PhotoSource { gallery, camera }
 
 abstract interface class PhotoPicker {
-  Future<MultipartPhoto?> pick(PhotoSource source);
-  Future<MultipartPhoto?> recover();
+  Future<MultipartPhoto?> pick(PhotoSource source,
+      {String purpose = 'profile'});
+  Future<MultipartPhoto?> recover({String purpose = 'profile'});
 }
 
 MultipartPhoto validatePhotoBytes(Uint8List bytes) {

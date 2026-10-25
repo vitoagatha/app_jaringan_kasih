@@ -165,6 +165,17 @@ docker compose exec postgres createdb -U jaringan_kasih -O jaringan_kasih jaring
 
 ## Troubleshooting
 
+### Setelah pembersihan Firebase P6
+
+Jalankan `flutter pub get` bila checkout/manifest baru berubah, kemudian hentikan
+proses Flutter lama dan jalankan ulang penuh. Plugin Google Services/Firebase sudah
+dilepas dari konfigurasi Android. Lockfile dan registrasi plugin mengikuti hasil
+pub get; jangan mengedit file generated secara manual.
+
+Browser sekarang menampilkan informasi bahwa versi web belum tersedia; pengujian
+fitur memakai Android atau desktop yang disiapkan. Perubahan layout, aksesibilitas,
+offline, dan status pengujian tercatat pada [QUALITY_AND_CLEANUP.md](QUALITY_AND_CLEANUP.md).
+
 ### Android gagal pada androidJdkImage / JdkImageTransform / jlink
 
 Lingkungan yang diperiksa memakai JBR Java 21.0.4 dari Android Studio dan Flutter

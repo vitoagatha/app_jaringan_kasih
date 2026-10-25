@@ -16,6 +16,32 @@ void main() {
   });
   tearDown(() => session.dispose());
 
+  test(
+      'Background validation keeps account visible but locks interaction until result',
+      () async {
+    auth.onRestore = () async => FakeAuth.account;
+    await session.restore();
+    final pending = Completer<AuthUser?>();
+    auth.onRestore = () => pending.future;
+    final check = session.restore(keepView: true);
+    expect(session.phase, SessionPhase.signedIn);
+    expect(session.busy, isTrue);
+    pending.complete(null);
+    await check;
+    expect(session.phase, SessionPhase.signedOut);
+    expect(session.user, isNull);
+  });
+
+  test('Background network error retains retry gate instead of claiming logout',
+      () async {
+    auth.onRestore = () async => FakeAuth.account;
+    await session.restore();
+    auth.onRestore = () async => throw const ApiException('Offline');
+    await session.restore(keepView: true);
+    expect(session.phase, SessionPhase.unavailable);
+    expect(session.error!.message, 'Offline');
+  });
+
   test('No saved account opens signed out state', () async {
     await session.restore();
     expect(session.phase, SessionPhase.signedOut);

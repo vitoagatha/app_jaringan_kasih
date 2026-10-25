@@ -1,6 +1,7 @@
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import 'token_store.dart';
+import '../../funding/data/funding_repository.dart';
 
 class AuthUser {
   final int id;
@@ -73,6 +74,7 @@ class AuthRepository implements AuthGateway, AccountGateway {
   final TokenStore _store;
   final String deviceName;
   String? _token;
+  FundingGateway get funding => FundingRepository(_client);
 
   AuthRepository._(this._client, this._store, this.deviceName);
 

@@ -221,6 +221,102 @@ void main() {
         {'id': 1});
   });
 
+  test('503 HTML menjadi error server yang aman dan mempertahankan status',
+      () async {
+    server.listen((request) {
+      request.response.statusCode = 503;
+      request.response.write('<html>private upstream detail</html>');
+      request.response.close();
+    });
+    await expectLater(
+        client.get('fundings'),
+        throwsA(isA<ApiException>()
+            .having((e) => e.statusCode, 'HTTP status', 503)
+            .having((e) => e.message, 'safe message',
+                isNot(contains('private upstream')))));
+  });
+
+  test('401 non-JSON tetap menandakan sesi tidak valid', () async {
+    server.listen((request) {
+      request.response.statusCode = 401;
+      request.response.write('Unauthorized');
+      request.response.close();
+    });
+    await expectLater(
+        client.get('auth/me'),
+        throwsA(isA<ApiException>()
+            .having((e) => e.isUnauthenticated, 'unauthenticated', isTrue)));
+  });
+
+  test('429 membaca Retry-After dan menampilkan petunjuk tanpa retry otomatis',
+      () async {
+    var requests = 0;
+    server.listen((request) {
+      requests++;
+      request.response.headers.set(HttpHeaders.retryAfterHeader, '45');
+      respond(
+          request,
+          {
+            'success': false,
+            'message': 'Terlalu banyak permintaan.',
+            'errors': {}
+          },
+          status: 429);
+    });
+    await expectLater(
+        client.get('fundings'),
+        throwsA(isA<ApiException>()
+            .having(
+                (e) => e.retryAfter, 'retry delay', const Duration(seconds: 45))
+            .having(
+                (e) => e.displayMessage, 'retry hint', contains('45 detik'))));
+    expect(requests, 1);
+  });
+
+  test('Retry-After tidak valid diabaikan tanpa menutupi error HTTP', () async {
+    server.listen((request) {
+      request.response.statusCode = 429;
+      request.response.headers.set(HttpHeaders.retryAfterHeader, 'invalid');
+      request.response.write('rate limited');
+      request.response.close();
+    });
+    await expectLater(
+        client.get('fundings'),
+        throwsA(isA<ApiException>()
+            .having((e) => e.statusCode, 'HTTP status', 429)
+            .having((e) => e.retryAfter, 'no delay', isNull)));
+  });
+
+  test('Kesalahan TLS diberi pesan aman tanpa melewati pemeriksaan sertifikat',
+      () async {
+    client.close();
+    client = ApiClient(
+        baseUri: Uri.parse('https://localhost/api/v1/'),
+        httpClient: _ProbeHttpClient(() async =>
+            throw const HandshakeException('private certificate details')));
+    await expectLater(
+        client.get('health'),
+        throwsA(isA<ApiException>()
+            .having((e) => e.message, 'TLS message', contains('Koneksi aman'))
+            .having((e) => e.message, 'no raw detail',
+                isNot(contains('private certificate')))));
+  });
+
+  test('Retry-After juga menerima tanggal HTTP', () async {
+    server.listen((request) {
+      request.response.headers.set(
+          HttpHeaders.retryAfterHeader,
+          HttpDate.format(
+              DateTime.now().toUtc().add(const Duration(seconds: 60))));
+      respond(request, {'success': false, 'message': 'Tunggu.', 'errors': {}},
+          status: 429);
+    });
+    await expectLater(
+        client.get('health'),
+        throwsA(isA<ApiException>().having((e) => e.retryAfter?.inSeconds,
+            'delay seconds', inInclusiveRange(1, 60))));
+  });
+
   test('Menormalisasi base URL dan menolak kredensial atau query', () {
     expect(ApiConfig.parseBaseUri('http://127.0.0.1:8000/api/v1').path,
         '/api/v1/');
