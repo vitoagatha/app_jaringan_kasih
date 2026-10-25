@@ -52,10 +52,23 @@ aplikasi ditutup, logout yang bertahan setelah buka ulang, registrasi, dan valid
 P1 selesai untuk lingkup autentikasi lokal Android berdasarkan bukti tersebut.
 Uji manual offline/gangguan storage dan platform selain Android belum dikonfirmasi;
 kasus kegagalan terkait tercakup dalam test otomatis dengan server/gateway/storage terkontrol.
-Langkah selanjutnya adalah review P1 sebelum implementasi P2.
+Pengguna selanjutnya meminta implementasi P2/P3 langsung.
 Profil, email, dan password reset tetap P2.
 
-## Tindak lanjut review sebelum P1
+## Progres P2/P3
+
+Backend dan Flutter untuk profil, verifikasi email, reset/perubahan password, serta
+foto profil sedang ditambahkan. Tidak ada migration baru. Instalasi image_picker
+dan pembuatan storage link dijalankan pengguna. Detail kontrak, batasan platform,
+dan checklist manual: [ACCOUNT_AND_PHOTOS.md](ACCOUNT_AND_PHOTOS.md).
+Hasil otomatis: backend 40 test lulus (212 assertion), Flutter 56 test lulus;
+analyzer main.dart/core/features/test (termasuk adapter picker) lulus setelah
+image_picker terpasang dan lockfile diperbarui. SMTP/foto publik/native runtime
+belum dikonfirmasi hasil manualnya. Konfigurasi SMTP terbaca smtp/mailpit/1025;
+path public/storage tersedia pada pemeriksaan sebelum push.
+P2/P3 belum ditutup sebelum dependency/native build dan pengujian perangkat dikonfirmasi.
+
+## Catatan review fondasi P0
 
 - Timeout client: mencegah pengiriman setelah token/koneksi terlambat, menghentikan pembacaan respons, dan menolak request pada client yang ditutup; test regresi lulus.
 - Script composer dev: memakai --no-reload, konsisten dengan Compose dan Dockerfile.

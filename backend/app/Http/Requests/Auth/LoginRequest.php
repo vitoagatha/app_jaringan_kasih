@@ -24,7 +24,7 @@ class LoginRequest extends FormRequest
         return [
             'email' => ['required', 'string', 'email', 'max:254'],
             // Bcrypt membatasi password berdasarkan byte, bukan jumlah karakter.
-            'password' => ['required', 'string', 'max:72', function ($attribute, $value, $fail) {
+            'password' => ['bail', 'required', 'string', 'max:72', function ($attribute, $value, $fail) {
                 if (strlen($value) > 72) {
                     $fail('Password maksimal 72 byte.');
                 }

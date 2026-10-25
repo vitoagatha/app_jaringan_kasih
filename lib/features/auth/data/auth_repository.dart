@@ -6,8 +6,15 @@ class AuthUser {
   final int id;
   final String name;
   final String email;
+  final bool emailVerified;
+  final String? photoUrl;
 
-  const AuthUser({required this.id, required this.name, required this.email});
+  const AuthUser(
+      {required this.id,
+      required this.name,
+      required this.email,
+      this.emailVerified = false,
+      this.photoUrl});
 
   static AuthUser parse(Object? value) {
     if (value is! Map<String, dynamic> ||
@@ -22,7 +29,10 @@ class AuthUser {
     return AuthUser(
         id: value['id'] as int,
         name: value['name'] as String,
-        email: value['email'] as String);
+        email: value['email'] as String,
+        emailVerified: value['email_verified_at'] != null,
+        photoUrl:
+            value['photo_url'] is String ? value['photo_url'] as String : null);
   }
 }
 
@@ -39,12 +49,26 @@ abstract interface class AuthGateway {
   void close();
 }
 
+abstract interface class AccountGateway {
+  Future<AuthUser> updateProfile(
+      String name, String email, String currentPassword);
+  Future<void> sendVerification();
+  Future<void> forgotPassword(String email);
+  Future<void> resetPassword(
+      String email, String token, String password, String confirmation);
+  Future<void> changePassword(
+      String currentPassword, String password, String confirmation);
+  Future<AuthUser> uploadPhoto(MultipartPhoto photo);
+  Future<AuthUser> deletePhoto();
+  Uri? photoUri(AuthUser user);
+}
+
 class SessionStorageException extends ApiException {
   const SessionStorageException()
       : super('Penyimpanan sesi perangkat gagal. Silakan coba lagi.');
 }
 
-class AuthRepository implements AuthGateway {
+class AuthRepository implements AuthGateway, AccountGateway {
   final ApiClient _client;
   final TokenStore _store;
   final String deviceName;
@@ -162,6 +186,69 @@ class AuthRepository implements AuthGateway {
     } catch (_) {
       throw const SessionStorageException();
     }
+  }
+
+  @override
+  Future<AuthUser> updateProfile(
+          String name, String email, String currentPassword) async =>
+      _userFrom(await _client.request('PATCH', 'auth/profile', body: {
+        'name': name.trim(),
+        'email': email.trim(),
+        'current_password': currentPassword,
+      }));
+
+  @override
+  Future<void> sendVerification() async {
+    await _client.request('POST', 'auth/email/verification-notification');
+  }
+
+  @override
+  Future<void> forgotPassword(String email) async {
+    await _client
+        .request('POST', 'auth/forgot-password', body: {'email': email.trim()});
+  }
+
+  @override
+  Future<void> resetPassword(
+      String email, String token, String password, String confirmation) async {
+    await _client.request('POST', 'auth/reset-password', body: {
+      'email': email.trim(),
+      'token': token.trim(),
+      'password': password,
+      'password_confirmation': confirmation,
+    });
+  }
+
+  @override
+  Future<void> changePassword(
+      String currentPassword, String password, String confirmation) async {
+    await _client.request('POST', 'auth/change-password', body: {
+      'current_password': currentPassword,
+      'password': password,
+      'password_confirmation': confirmation,
+    });
+    await _clearToken();
+  }
+
+  @override
+  Future<AuthUser> uploadPhoto(MultipartPhoto photo) async => _userFrom(
+      await _client.request('POST', 'auth/profile/photo', photo: photo));
+
+  @override
+  Future<AuthUser> deletePhoto() async =>
+      _userFrom(await _client.request('DELETE', 'auth/profile/photo'));
+
+  @override
+  Uri? photoUri(AuthUser user) {
+    final path = user.photoUrl;
+    if (path == null) return null;
+    final uri = _client.baseUri.resolve(path);
+    // Foto publik harus berasal dari storage backend sendiri.
+    if (uri.origin != _client.baseUri.origin ||
+        !uri.path.startsWith('/storage/avatars/')) {
+      return null;
+    }
+    return uri;
   }
 
   @override

@@ -4,11 +4,15 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../application/session_controller.dart';
+import '../../profile/data/photo_selection.dart';
+import '../../profile/presentation/account_home.dart';
+import 'password_reset_form.dart';
 
 class JaringanKasihApp extends StatefulWidget {
   final SessionController session;
+  final PhotoPicker? photoPicker;
 
-  const JaringanKasihApp({super.key, required this.session});
+  const JaringanKasihApp({super.key, required this.session, this.photoPicker});
 
   @override
   State<JaringanKasihApp> createState() => _JaringanKasihAppState();
@@ -26,6 +30,7 @@ class _JaringanKasihAppState extends State<JaringanKasihApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed &&
+        !widget.session.externalInteraction &&
         (widget.session.phase == SessionPhase.signedIn ||
             widget.session.phase == SessionPhase.unavailable)) {
       unawaited(widget.session.restore());
@@ -73,7 +78,8 @@ class _JaringanKasihAppState extends State<JaringanKasihApp>
               case SessionPhase.signedOut:
                 return _AuthForm(session: session);
               case SessionPhase.signedIn:
-                return _AccountHome(session: session);
+                return AccountHome(
+                    session: session, photoPicker: widget.photoPicker);
             }
           },
         ),
@@ -97,6 +103,7 @@ class _AuthFormState extends State<_AuthForm> {
   final _confirmation = TextEditingController();
   bool _register = false;
   bool _showPassword = false;
+  bool _resetPassword = false;
 
   @override
   void dispose() {
@@ -129,6 +136,15 @@ class _AuthFormState extends State<_AuthForm> {
   @override
   Widget build(BuildContext context) {
     final session = widget.session;
+    if (_resetPassword) {
+      return PasswordResetForm(
+          session: session,
+          initialEmail: _email.text,
+          onBack: () {
+            session.clearError();
+            setState(() => _resetPassword = false);
+          });
+    }
     return Scaffold(
       appBar: AppBar(title: const Text('Jaringan Kasih')),
       body: Center(
@@ -256,6 +272,18 @@ class _AuthFormState extends State<_AuthForm> {
                             child: CircularProgressIndicator(strokeWidth: 2))
                         : Text(_register ? 'Daftar' : 'Masuk'),
                   ),
+                  if (!_register)
+                    TextButton(
+                      key: const Key('forgot_password'),
+                      onPressed: session.busy
+                          ? null
+                          : () {
+                              session.clearError();
+                              _password.clear();
+                              setState(() => _resetPassword = true);
+                            },
+                      child: const Text('Lupa password?'),
+                    ),
                   TextButton(
                     key: const Key('auth_toggle'),
                     onPressed: session.busy
@@ -282,39 +310,4 @@ class _AuthFormState extends State<_AuthForm> {
       ),
     );
   }
-}
-
-class _AccountHome extends StatelessWidget {
-  final SessionController session;
-
-  const _AccountHome({required this.session});
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Jaringan Kasih')),
-        body: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            Text('Halo, ${session.user!.name}',
-                style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 12),
-            Text(session.user!.email),
-            const SizedBox(height: 24),
-            const Text('Selamat datang di Jaringan Kasih.'),
-            if (session.error != null) ...[
-              const SizedBox(height: 16),
-              Text(session.error!.message,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error)),
-            ],
-            const SizedBox(height: 24),
-            OutlinedButton(
-                onPressed: session.busy ? null : session.restore,
-                child: const Text('Periksa sesi')),
-            FilledButton(
-                key: const Key('auth_logout'),
-                onPressed: session.busy ? null : session.logout,
-                child: Text(session.busy ? 'Memproses...' : 'Keluar')),
-          ],
-        ),
-      );
 }

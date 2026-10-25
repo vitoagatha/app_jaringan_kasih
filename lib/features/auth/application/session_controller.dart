@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../../core/network/api_client.dart';
 import '../data/auth_repository.dart';
 
 enum SessionPhase { restoring, signedOut, signedIn, unavailable }
@@ -12,8 +13,77 @@ class SessionController extends ChangeNotifier {
   ApiException? error;
   bool busy = false;
   bool _disposed = false;
+  bool externalInteraction = false;
 
   SessionController(this._auth);
+
+  AccountGateway get _account => _auth as AccountGateway;
+  Uri? get photoUri => user == null ? null : _account.photoUri(user!);
+
+  Future<bool> updateProfile(
+          String name, String email, String currentPassword) =>
+      _accountAction(() async {
+        user = await _account.updateProfile(name, email, currentPassword);
+      });
+
+  Future<bool> sendVerification() => _accountAction(_account.sendVerification);
+  Future<bool> uploadPhoto(MultipartPhoto photo) => _accountAction(() async {
+        user = await _account.uploadPhoto(photo);
+      });
+  Future<bool> deletePhoto() => _accountAction(() async {
+        user = await _account.deletePhoto();
+      });
+  Future<bool> changePassword(
+          String currentPassword, String password, String confirmation) =>
+      _accountAction(() async {
+        await _account.changePassword(currentPassword, password, confirmation);
+        user = null;
+        phase = SessionPhase.signedOut;
+      });
+  Future<bool> forgotPassword(String email) =>
+      _accountAction(() => _account.forgotPassword(email), public: true);
+  Future<bool> resetPassword(
+          String email, String token, String password, String confirmation) =>
+      _accountAction(
+          () => _account.resetPassword(email, token, password, confirmation),
+          public: true);
+
+  Future<bool> _accountAction(Future<void> Function() action,
+      {bool public = false}) async {
+    if (busy ||
+        _disposed ||
+        phase != (public ? SessionPhase.signedOut : SessionPhase.signedIn)) {
+      return false;
+    }
+    busy = true;
+    error = null;
+    notifyListeners();
+    try {
+      await action();
+      return true;
+    } catch (failure) {
+      error = _message(failure);
+      if (failure is SessionStorageException) {
+        phase = SessionPhase.unavailable;
+      } else if (!public &&
+          failure is ApiException &&
+          failure.isUnauthenticated) {
+        // restore memeriksa ulang dan membersihkan token yang sudah dicabut.
+        phase = SessionPhase.restoring;
+        try {
+          user = await _auth.restore();
+          phase = user == null ? SessionPhase.signedOut : SessionPhase.signedIn;
+        } catch (restoreFailure) {
+          error = _message(restoreFailure);
+          phase = SessionPhase.unavailable;
+        }
+      }
+      return false;
+    } finally {
+      busy = false;
+      _notify();
+    }
+  }
 
   Future<void> restore() async {
     if (busy || _disposed) return;

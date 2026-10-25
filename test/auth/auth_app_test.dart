@@ -52,6 +52,7 @@ void main() {
     pending.complete(FakeAuth.account);
     await tester.pumpAndSettle();
     expect(find.text('Halo, Akun Belajar'), findsOneWidget);
+    await tester.scrollUntilVisible(find.byKey(const Key('auth_logout')), 250);
     await tester.tap(find.byKey(const Key('auth_logout')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('auth_email')), findsOneWidget);
