@@ -51,6 +51,16 @@ class ApiErrorTest extends TestCase
             ->assertJsonPath('message', 'Silakan masuk kembali.');
     }
 
+    public function test_protected_routes_return_401_without_requesting_json(): void
+    {
+        $this->get('/api/v1/auth/me', ['Accept' => 'text/html'])
+            ->assertUnauthorized()->assertHeader('Content-Type', 'application/json')
+            ->assertJsonPath('message', 'Silakan masuk kembali.');
+        $this->app['auth']->forgetGuards();
+        $this->post('/api/v1/auth/logout')
+            ->assertUnauthorized()->assertHeader('Content-Type', 'application/json');
+    }
+
     public function test_unexpected_errors_hide_internal_details_even_when_debug_is_enabled(): void
     {
         config(['app.debug' => true]);

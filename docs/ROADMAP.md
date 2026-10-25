@@ -34,7 +34,26 @@ Transaksi/pembayaran, persetujuan admin, popularitas, deployment, dan distribusi
 
 P0 selesai diverifikasi pada 25 Oktober 2026 berdasarkan pemeriksaan lokal dan hasil eksekusi pengguna di atas.
 Tahap berikutnya P1: registrasi, login/logout, Sanctum, token, dan pemulihan sesi.
-Entrypoint aplikasi utama masih memakai Firebase lama; gunakan lib/main_local.dart untuk fondasi lokal sampai migrasi P1.
+Entrypoint diagnostik P0 adalah lib/main_local.dart. P1 mengganti lib/main.dart
+dengan autentikasi Laravel; halaman fitur Firebase lama belum dihubungkan.
+
+## Progres P1
+
+Sanctum 4.3.3 sudah dipasang pengguna. Kode endpoint register/login/me/logout,
+validasi, pembatasan request, masa berlaku token tujuh hari, serta test backend
+ditambahkan. Status verifikasi dan cara pemakaian mengikuti
+[AUTHENTICATION.md](AUTHENTICATION.md). Integrasi Flutter mencakup repository,
+secure storage, gate/controller sesi, form registrasi/login, akun aktif, dan logout.
+Suite Flutter lulus 40 test (26 test autentikasi baru dan 14 regresi P0).
+Backend lulus 26 test dengan 124 assertion; analyzer kode P0/P1 tidak menemukan masalah.
+Pengguna melaporkan build Android dan empat alur manual PASS: pemulihan sesi setelah
+aplikasi ditutup, logout yang bertahan setelah buka ulang, registrasi, dan validasi
+(password salah, email terdaftar, konfirmasi berbeda).
+P1 selesai untuk lingkup autentikasi lokal Android berdasarkan bukti tersebut.
+Uji manual offline/gangguan storage dan platform selain Android belum dikonfirmasi;
+kasus kegagalan terkait tercakup dalam test otomatis dengan server/gateway/storage terkontrol.
+Langkah selanjutnya adalah review P1 sebelum implementasi P2.
+Profil, email, dan password reset tetap P2.
 
 ## Tindak lanjut review sebelum P1
 

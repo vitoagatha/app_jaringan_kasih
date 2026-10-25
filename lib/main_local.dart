@@ -7,7 +7,7 @@ import 'features/health/data/health_repository.dart';
 
 void main() => runApp(const LocalBackendApp());
 
-/// Entrypoint pengembangan P0; auth aplikasi dipindahkan pada P1.
+/// Entrypoint diagnostik P0; autentikasi Laravel tersedia di main.dart.
 class LocalBackendApp extends StatelessWidget {
   final Future<HealthStatus> Function()? checkHealth;
 

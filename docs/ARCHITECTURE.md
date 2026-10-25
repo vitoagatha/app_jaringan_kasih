@@ -24,8 +24,9 @@ database menyimpan path relatif. URL untuk client dibentuk backend saat implemen
 | `lib/features/health` | Model hasil health dan repository |
 | `lib/main_local.dart` | Layar diagnostik P0 |
 
-Form Requests, Policies, repository fitur Flutter, dan Sanctum ditambahkan mengikuti P1-P5.
-Belum ada endpoint registrasi/login pada P0.
+P1 menambahkan Form Requests autentikasi dan Sanctum. Policies serta repository
+fitur Flutter mengikuti implementasi fitur. Kontrak dan status P1 tercatat pada
+[AUTHENTICATION.md](AUTHENTICATION.md).
 
 ## Endpoint yang tersedia
 
@@ -34,6 +35,10 @@ Belum ada endpoint registrasi/login pada P0.
 | GET | `/` | Informasi layanan |
 | GET | `/up` | Proses Laravel hidup; respons bawaan framework |
 | GET | `/api/v1/health` | Pemeriksaan query `SELECT 1` ke database |
+| POST | `/api/v1/auth/register` | Registrasi dan penerbitan token |
+| POST | `/api/v1/auth/login` | Login dan penerbitan token |
+| GET | `/api/v1/auth/me` | Pengguna pemilik token aktif |
+| POST | `/api/v1/auth/logout` | Pencabutan token aktif |
 
 `/api/v1/` sendiri bukan endpoint daftar data dan akan mengembalikan 404.
 
@@ -65,7 +70,10 @@ Gagal:
 Pemetaan status tersedia sebagai fondasi; endpoint fitur terkait dikembangkan pada tahap berikutnya.
 `ApiClient` mengubah kegagalan HTTP menjadi `ApiException` yang membawa status dan pesan per field.
 Ia tidak mengikuti redirect, serta membatasi endpoint agar tetap berada di dalam API_BASE_URL.
-Token provider masih titik integrasi; penyimpanan/penerbitan token dikerjakan P1.
+Token backend diterbitkan Sanctum. Fitur Flutter `lib/features/auth` mencakup
+repository API, SecureTokenStore, SessionController, serta form/gate sesi.
+Entrypoint utama menggunakan alur ini; pengguna melaporkan build serta alur manual
+registrasi, login, pemulihan sesi, logout, dan validasi PASS di Android Emulator.
 
 ### Batas waktu dan penutupan client
 
