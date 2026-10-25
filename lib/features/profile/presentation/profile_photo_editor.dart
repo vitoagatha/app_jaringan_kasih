@@ -21,6 +21,7 @@ class _ProfilePhotoEditorState extends State<ProfilePhotoEditor> {
   MultipartPhoto? _selection;
   String? _message;
   bool _picking = false;
+  int _imageAttempt = 0;
 
   @override
   void initState() {
@@ -42,8 +43,10 @@ class _ProfilePhotoEditorState extends State<ProfilePhotoEditor> {
     if (!recover) setState(() => _message = null);
     try {
       final photo = recover
-          ? await widget.picker!.recover()
-          : await widget.picker!.pick(source);
+          ? await widget.picker!
+              .recover(purpose: 'profile:${widget.session.user!.id}')
+          : await widget.picker!
+              .pick(source, purpose: 'profile:${widget.session.user!.id}');
       if (mounted && photo != null) {
         setState(() {
           _selection = photo;
@@ -55,7 +58,7 @@ class _ProfilePhotoEditorState extends State<ProfilePhotoEditor> {
     } catch (failure) {
       if (mounted) {
         setState(() => _message = failure is ApiException
-            ? failure.message
+            ? failure.displayMessage
             : 'Gambar tidak dapat dibaca. Silakan pilih lagi.');
       }
     } finally {
@@ -96,15 +99,29 @@ class _ProfilePhotoEditorState extends State<ProfilePhotoEditor> {
         : photoUrl == null
             ? fallback()
             : Image.network(photoUrl.toString(),
+                key: ValueKey('$photoUrl-$_imageAttempt'),
                 width: 120,
                 height: 120,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Text(
-                    'Foto tidak dapat dimuat. Periksa koneksi dan coba Periksa sesi.'));
+                errorBuilder: (_, __, ___) =>
+                    Column(mainAxisSize: MainAxisSize.min, children: [
+                      const Text('Foto tidak dapat dimuat. Periksa koneksi.'),
+                      TextButton(
+                          onPressed: disabled
+                              ? null
+                              : () => setState(() => _imageAttempt++),
+                          child: const Text('Muat ulang foto')),
+                    ]));
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('Foto profil', style: TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(height: 12),
-      ClipRRect(borderRadius: BorderRadius.circular(12), child: preview),
+      Semantics(
+          image: true,
+          label: _selection == null
+              ? 'Foto profil saat ini'
+              : 'Preview foto profil sebelum diunggah',
+          child: ClipRRect(
+              borderRadius: BorderRadius.circular(12), child: preview)),
       const SizedBox(height: 8),
       const Text(
           'JPEG, PNG, atau WebP; maksimal 2 MB, dimensi 32–4096 piksel.'),

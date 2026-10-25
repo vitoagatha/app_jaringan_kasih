@@ -4,12 +4,15 @@ import '../../auth/application/session_controller.dart';
 import '../../auth/presentation/account_fields.dart';
 import '../data/photo_selection.dart';
 import 'profile_photo_editor.dart';
+import '../../../core/presentation/app_layout.dart';
 
 class AccountHome extends StatefulWidget {
   final SessionController session;
   final PhotoPicker? photoPicker;
+  final VoidCallback? onExplore;
 
-  const AccountHome({super.key, required this.session, this.photoPicker});
+  const AccountHome(
+      {super.key, required this.session, this.photoPicker, this.onExplore});
 
   @override
   State<AccountHome> createState() => _AccountHomeState();
@@ -80,7 +83,8 @@ class _AccountHomeState extends State<AccountHome> {
     final session = widget.session;
     return Scaffold(
       appBar: AppBar(title: const Text('Jaringan Kasih')),
-      body: ListView(padding: const EdgeInsets.all(24), children: [
+      body: AppContent(
+          child: ListView(padding: const EdgeInsets.all(24), children: [
         Text('Halo, ${session.user!.name}',
             style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 12),
@@ -100,7 +104,7 @@ class _AccountHomeState extends State<AccountHome> {
         if (session.error != null)
           Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(session.error!.message,
+              child: Text(session.error!.displayMessage,
                   style:
                       TextStyle(color: Theme.of(context).colorScheme.error))),
         const Divider(height: 32),
@@ -207,11 +211,16 @@ class _AccountHomeState extends State<AccountHome> {
         OutlinedButton(
             onPressed: session.busy ? null : session.restore,
             child: const Text('Periksa sesi')),
+        if (widget.onExplore != null)
+          FilledButton(
+              key: const Key('explore_fundings'),
+              onPressed: session.busy ? null : widget.onExplore,
+              child: const Text('Jelajahi pendanaan')),
         FilledButton(
             key: const Key('auth_logout'),
             onPressed: session.busy ? null : session.logout,
             child: Text(session.busy ? 'Memproses...' : 'Keluar')),
-      ]),
+      ])),
     );
   }
 }

@@ -16,9 +16,11 @@ class FakePhotoPicker implements PhotoPicker {
   Future<MultipartPhoto?> Function() onPick = () async => null;
   Future<MultipartPhoto?> Function() onRecover = () async => null;
   @override
-  Future<MultipartPhoto?> pick(PhotoSource source) => onPick();
+  Future<MultipartPhoto?> pick(PhotoSource source,
+          {String purpose = 'profile'}) =>
+      onPick();
   @override
-  Future<MultipartPhoto?> recover() => onRecover();
+  Future<MultipartPhoto?> recover({String purpose = 'profile'}) => onRecover();
 }
 
 void main() {

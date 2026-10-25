@@ -30,6 +30,12 @@ fitur Flutter mengikuti implementasi fitur. Kontrak dan status P1 tercatat pada
 
 ## Endpoint yang tersedia
 
+Kategori, pendanaan, dan wishlist P4/P5 memakai tabel fundings/wishlists dan client
+`lib/features/funding`. Kontrak/hak akses/pagination tersedia pada
+[FUNDING_AND_WISHLIST.md](FUNDING_AND_WISHLIST.md). Client memakai ApiClient dan
+token sesi yang sama dengan fitur akun. Source dan dependency Firestore lama telah
+dihapus pada P6. Layout/error/siklus sesi dijelaskan pada [QUALITY_AND_CLEANUP.md](QUALITY_AND_CLEANUP.md).
+
 Kontrak tambahan profil, email/password, dan foto P2/P3 tercatat pada
 [ACCOUNT_AND_PHOTOS.md](ACCOUNT_AND_PHOTOS.md). URL foto adalah path relatif
 ke origin API perangkat; tautan verifikasi email memakai APP_URL backend.

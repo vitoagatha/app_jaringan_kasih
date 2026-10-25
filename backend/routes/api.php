@@ -2,11 +2,26 @@
 
 use App\Http\Controllers\Api\V1\AccountController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\FundingController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\ProfilePhotoController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    Route::get('categories', [FundingController::class, 'categories']);
+    Route::get('fundings', [FundingController::class, 'index']);
+    Route::get('fundings/{funding}', [FundingController::class, 'show'])->whereNumber('funding');
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('me/fundings', [FundingController::class, 'mine']);
+        Route::get('me/fundings/{funding}', [FundingController::class, 'ownShow'])->whereNumber('funding');
+        Route::get('me/wishlist', [FundingController::class, 'wishlist']);
+        Route::middleware('throttle:account-write')->group(function () {
+            Route::post('fundings', [FundingController::class, 'store']);
+            Route::patch('fundings/{funding}', [FundingController::class, 'update'])->whereNumber('funding');
+            Route::put('fundings/{funding}/wishlist', [FundingController::class, 'saveWishlist'])->whereNumber('funding');
+            Route::delete('fundings/{funding}/wishlist', [FundingController::class, 'removeWishlist'])->whereNumber('funding');
+        });
+    });
     Route::get('health', HealthController::class)->name('api.v1.health');
     Route::prefix('auth')->name('api.v1.auth.')->group(function () {
         Route::post('register', [AuthController::class, 'register'])->middleware('throttle:auth-register')->name('register');

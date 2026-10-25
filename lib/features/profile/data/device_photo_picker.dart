@@ -1,8 +1,10 @@
 import 'dart:ui' as ui;
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
@@ -10,12 +12,30 @@ import 'photo_selection.dart';
 
 class DevicePhotoPicker implements PhotoPicker {
   final ImagePicker _picker;
+  final FlutterSecureStorage _storage;
+  final String _purposeKey;
+  final String _scope;
+  bool _busy = false;
 
-  DevicePhotoPicker({ImagePicker? picker}) : _picker = picker ?? ImagePicker();
+  DevicePhotoPicker(
+      {ImagePicker? picker, FlutterSecureStorage? storage, Uri? baseUri})
+      : _picker = picker ?? ImagePicker(),
+        _storage = storage ??
+            const FlutterSecureStorage(
+                aOptions: AndroidOptions(encryptedSharedPreferences: true)),
+        _purposeKey = 'jk_pending_photo_context',
+        _scope = base64Url.encode(utf8.encode(baseUri?.toString() ?? 'local'));
 
   @override
-  Future<MultipartPhoto?> pick(PhotoSource source) async {
+  Future<MultipartPhoto?> pick(PhotoSource source,
+      {String purpose = 'profile'}) async {
+    if (_busy) {
+      throw const ApiException(
+          'Pemilihan gambar masih berlangsung. Silakan tunggu.');
+    }
+    _busy = true;
     try {
+      await _storage.write(key: _purposeKey, value: '$_scope:$purpose');
       final file = await _picker.pickImage(
           source: source == PhotoSource.gallery
               ? ImageSource.gallery
@@ -24,22 +44,33 @@ class DevicePhotoPicker implements PhotoPicker {
           maxHeight: 4096,
           imageQuality: 85,
           requestFullMetadata: false);
+      await _storage.delete(key: _purposeKey);
       return file == null ? null : await _read(file);
     } on PlatformException catch (error) {
       throw _pickerError(error);
+    } finally {
+      _busy = false;
     }
   }
 
   @override
-  Future<MultipartPhoto?> recover() async {
+  Future<MultipartPhoto?> recover({String purpose = 'profile'}) async {
     if (defaultTargetPlatform != TargetPlatform.android) return null;
+    if (_busy) return null;
+    _busy = true;
     try {
+      if (await _storage.read(key: _purposeKey) != '$_scope:$purpose') {
+        return null;
+      }
       final data = await _picker.retrieveLostData();
+      await _storage.delete(key: _purposeKey);
       if (data.exception != null) throw _pickerError(data.exception!);
       final files = data.files;
       return files == null || files.isEmpty ? null : await _read(files.first);
     } on PlatformException catch (error) {
       throw _pickerError(error);
+    } finally {
+      _busy = false;
     }
   }
 

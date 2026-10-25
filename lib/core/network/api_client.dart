@@ -25,9 +25,14 @@ class ApiClient {
   Future<Object?> get(String path) => request('GET', path);
 
   Future<Object?> request(String method, String path,
-      {Map<String, Object?>? body, MultipartPhoto? photo}) async {
+      {Map<String, Object?>? body,
+      MultipartPhoto? photo,
+      Map<String, String>? multipartFields}) async {
     if (body != null && photo != null) {
       throw ArgumentError('Gunakan JSON atau multipart, bukan keduanya.');
+    }
+    if (multipartFields != null && photo == null) {
+      throw ArgumentError('Field multipart memerlukan file foto.');
     }
     const timeoutError =
         ApiException('Koneksi terlalu lama. Silakan coba lagi.');
@@ -82,7 +87,8 @@ class ApiClient {
         if (photo != null) {
           final boundary =
               'jk${List.generate(24, (_) => Random.secure().nextInt(16).toRadixString(16)).join()}';
-          final bytes = photo.encode(boundary);
+          final bytes =
+              photo.encode(boundary, fields: multipartFields ?? const {});
           request.headers.contentType =
               ContentType.parse('multipart/form-data; boundary=$boundary');
           request.contentLength = bytes.length;
@@ -98,10 +104,23 @@ class ApiClient {
           text.write(stream.current);
         }
         ensureActive();
-        final decoded = jsonDecode(text.toString());
+        final retryAfter =
+            _retryAfter(response.headers.value(HttpHeaders.retryAfterHeader));
+        dynamic decoded;
+        try {
+          decoded = jsonDecode(text.toString());
+        } on FormatException {
+          if (response.statusCode >= 400) {
+            throw _httpError(response.statusCode, retryAfter);
+          }
+          rethrow;
+        }
         if (decoded is! Map<String, dynamic> ||
             decoded['success'] is! bool ||
             decoded['message'] is! String) {
+          if (response.statusCode >= 400) {
+            throw _httpError(response.statusCode, retryAfter);
+          }
           throw const FormatException('Invalid API envelope');
         }
         if (response.statusCode < 200 ||
@@ -119,7 +138,9 @@ class ApiClient {
             }
           }
           throw ApiException(decoded['message'] as String,
-              statusCode: response.statusCode, errors: errors);
+              statusCode: response.statusCode,
+              errors: errors,
+              retryAfter: retryAfter);
         }
         if (!decoded.containsKey('data')) {
           throw const FormatException('Missing API data');
@@ -131,6 +152,9 @@ class ApiClient {
         cancel(timeoutError);
         throw timeoutError;
       });
+    } on HandshakeException {
+      throw const ApiException(
+          'Koneksi aman ke server gagal. Periksa alamat API dan sertifikat server.');
     } on SocketException {
       throw const ApiException(
           'Tidak dapat terhubung ke server lokal. Periksa server dan jaringan.');
@@ -148,6 +172,35 @@ class ApiClient {
     _closed = true;
     _httpClient.close(force: true);
   }
+
+  Duration? _retryAfter(String? value) {
+    if (value == null) return null;
+    final seconds = int.tryParse(value);
+    if (seconds != null) {
+      return seconds >= 0 ? Duration(seconds: seconds) : null;
+    }
+    try {
+      final delay = HttpDate.parse(value).difference(DateTime.now().toUtc());
+      return delay.isNegative ? Duration.zero : delay;
+    } on HttpException {
+      return null;
+    } on FormatException {
+      return null;
+    }
+  }
+
+  ApiException _httpError(int status, Duration? retryAfter) => ApiException(
+      switch (status) {
+        401 => 'Silakan masuk kembali.',
+        403 => 'Anda tidak memiliki izin untuk tindakan ini.',
+        404 => 'Endpoint atau data tidak ditemukan.',
+        413 => 'Ukuran unggahan melebihi batas server.',
+        429 => 'Terlalu banyak permintaan. Silakan coba lagi nanti.',
+        >= 500 => 'Server sementara tidak tersedia. Silakan coba lagi.',
+        _ => 'Permintaan gagal. Silakan periksa data dan coba lagi.',
+      },
+      statusCode: status,
+      retryAfter: retryAfter);
 }
 
 class MultipartPhoto {
@@ -163,13 +216,22 @@ class MultipartPhoto {
     }
   }
 
-  Uint8List encode(String boundary) {
+  Uint8List encode(String boundary, {Map<String, String> fields = const {}}) {
     final extension = {
       'image/jpeg': 'jpg',
       'image/png': 'png',
       'image/webp': 'webp'
     }[mimeType]!;
-    return (BytesBuilder(copy: false)
+    final buffer = BytesBuilder(copy: false);
+    for (final entry in fields.entries) {
+      if (!RegExp(r'^[A-Za-z0-9_]{1,64}$').hasMatch(entry.key) ||
+          entry.key == 'photo') {
+        throw ArgumentError('Nama field multipart tidak valid.');
+      }
+      buffer.add(utf8.encode(
+          '--$boundary\r\nContent-Disposition: form-data; name="${entry.key}"\r\n\r\n${entry.value}\r\n'));
+    }
+    return (buffer
           ..add(utf8.encode(
               '--$boundary\r\nContent-Disposition: form-data; name="photo"; filename="profile.$extension"\r\nContent-Type: $mimeType\r\n\r\n'))
           ..add(bytes)

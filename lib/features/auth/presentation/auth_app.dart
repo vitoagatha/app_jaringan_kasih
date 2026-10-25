@@ -7,6 +7,8 @@ import '../application/session_controller.dart';
 import '../../profile/data/photo_selection.dart';
 import '../../profile/presentation/account_home.dart';
 import 'password_reset_form.dart';
+import '../../funding/presentation/funding_screen.dart';
+import '../../../core/presentation/app_layout.dart';
 
 class JaringanKasihApp extends StatefulWidget {
   final SessionController session;
@@ -20,6 +22,7 @@ class JaringanKasihApp extends StatefulWidget {
 
 class _JaringanKasihAppState extends State<JaringanKasihApp>
     with WidgetsBindingObserver {
+  bool _showFunding = false;
   @override
   void initState() {
     super.initState();
@@ -33,7 +36,7 @@ class _JaringanKasihAppState extends State<JaringanKasihApp>
         !widget.session.externalInteraction &&
         (widget.session.phase == SessionPhase.signedIn ||
             widget.session.phase == SessionPhase.unavailable)) {
-      unawaited(widget.session.restore());
+      unawaited(widget.session.restore(keepView: true));
     }
   }
 
@@ -47,7 +50,7 @@ class _JaringanKasihAppState extends State<JaringanKasihApp>
   @override
   Widget build(BuildContext context) => MaterialApp(
         title: 'Jaringan Kasih',
-        theme: ThemeData(colorSchemeSeed: Colors.teal, useMaterial3: true),
+        theme: appTheme(),
         home: AnimatedBuilder(
           animation: widget.session,
           builder: (context, _) {
@@ -55,31 +58,45 @@ class _JaringanKasihAppState extends State<JaringanKasihApp>
             switch (session.phase) {
               case SessionPhase.restoring:
                 return const Scaffold(
-                    body: Center(child: CircularProgressIndicator()));
+                    body: Center(
+                        child: CircularProgressIndicator(
+                            semanticsLabel: 'Memuat sesi')));
               case SessionPhase.unavailable:
                 return Scaffold(
                   appBar: AppBar(title: const Text('Jaringan Kasih')),
-                  body: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(mainAxisSize: MainAxisSize.min, children: [
-                        const Text('Sesi belum dapat diperiksa.'),
-                        const SizedBox(height: 12),
-                        Text(session.error!.message,
-                            textAlign: TextAlign.center),
-                        const SizedBox(height: 16),
-                        FilledButton(
-                            onPressed: session.restore,
-                            child: const Text('Coba lagi')),
-                      ]),
-                    ),
-                  ),
+                  body: AppStatusPanel(
+                      title: 'Sesi belum dapat diperiksa.',
+                      message: session.error!.displayMessage,
+                      onRetry: session.restore),
                 );
               case SessionPhase.signedOut:
                 return _AuthForm(session: session);
               case SessionPhase.signedIn:
-                return AccountHome(
-                    session: session, photoPicker: widget.photoPicker);
+                final Widget page = _showFunding && session.funding != null
+                    ? FundingScreen(
+                        session: session,
+                        gateway: session.funding!,
+                        photoPicker: widget.photoPicker,
+                        onBack: () => setState(() => _showFunding = false))
+                    : AccountHome(
+                        session: session,
+                        photoPicker: widget.photoPicker,
+                        onExplore: session.funding == null
+                            ? null
+                            : () => setState(() => _showFunding = true));
+                return Stack(children: [
+                  AbsorbPointer(
+                      absorbing: session.busy,
+                      child: KeyedSubtree(
+                          key: ValueKey(session.user!.id), child: page)),
+                  if (session.busy)
+                    const Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: LinearProgressIndicator(
+                            semanticsLabel: 'Memproses permintaan')),
+                ]);
             }
           },
         ),
@@ -256,7 +273,7 @@ class _AuthFormState extends State<_AuthForm> {
                     const SizedBox(height: 16),
                     Semantics(
                       liveRegion: true,
-                      child: Text(session.error!.message,
+                      child: Text(session.error!.displayMessage,
                           style: TextStyle(
                               color: Theme.of(context).colorScheme.error)),
                     ),

@@ -2,13 +2,22 @@
 
 Project belajar Flutter dengan Laravel REST API, PostgreSQL, storage lokal, dan Mailpit.
 
-Status: P0 dan P1 selesai untuk lingkup lokal Android; build dan alur autentikasi
-manual di emulator dilaporkan PASS oleh pengguna. P2/P3 dilanjutkan sesuai instruksi pengguna.
+Status: pengujian manual P0–P6 dilaporkan PASS oleh pengguna untuk alur lokal Android.
+Tambahan foto pendanaan memerlukan migration baru dan pengujian manual berikutnya.
 Entrypoint `lib/main.dart` menggunakan Laravel untuk registrasi, login, pemulihan sesi,
 dan logout. `lib/main_local.dart` tetap tersedia untuk diagnostik backend.
 
-P2/P3 sedang diimplementasikan: profil, email/password, dan foto profil. Instalasi
+P2/P3 mencakup profil, email/password, dan foto profil. Instalasi
 picker serta checklist perangkat mengikuti [panduan P2/P3](docs/ACCOUNT_AND_PHOTOS.md).
+
+Kode P4/P5 tersedia: pendanaan, kategori, draft/published, wishlist, pencarian/filter,
+dan pagination. Migration baru dijalankan pengguna sesuai [panduan P4/P5](docs/FUNDING_AND_WISHLIST.md).
+Foto pendanaan tersedia pada form, daftar, detail, dan wishlist; langkah aktivasi
+serta checklist tambahannya ada pada panduan P4/P5.
+
+P6 menambahkan perbaikan layout/aksesibilitas dasar, penanganan error/offline, dan
+menghapus source serta dependency Firebase lama.
+Lihat [catatan P6](docs/QUALITY_AND_CLEANUP.md).
 
 ## Mulai lagi setelah komputer dinyalakan
 
@@ -34,6 +43,8 @@ Untuk checkout baru, ikuti instalasi pertama pada panduan lokal, termasuk `flutt
 - [Backend Laravel](backend/README.md)
 - [Autentikasi P1 dan checklist manual](docs/AUTHENTICATION.md)
 - [Profil, email/password, dan foto profil P2/P3](docs/ACCOUNT_AND_PHOTOS.md)
+- [Pendanaan dan wishlist P4/P5](docs/FUNDING_AND_WISHLIST.md)
+- [Kualitas aplikasi dan pembersihan P6](docs/QUALITY_AND_CLEANUP.md)
 
 ## Layanan lokal
 
@@ -55,7 +66,7 @@ flutter test --no-pub
 ```
 
 Test database menggunakan `jaringan_kasih_testing`, terpisah dari `jaringan_kasih`.
-Test mencakup fondasi P0, autentikasi P1, serta kode akun/foto P2/P3.
-Pendanaan dan transaksi belum diimplementasikan pada backend lokal. Halaman lama yang memakai Firebase
-masih disimpan dan belum dihubungkan ke alur aplikasi utama baru.
+Test mencakup fondasi P0, autentikasi P1, akun/foto P2/P3, serta pendanaan/wishlist P4/P5.
+Transaksi belum diimplementasikan pada backend lokal. Source/config/dependency
+Firebase lama telah dibersihkan pada P6. Jalankan ulang penuh setelah perubahan plugin native.
 `.env`, password pribadi, token, dan APP_KEY tidak boleh dimasukkan ke Git.

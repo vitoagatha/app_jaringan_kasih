@@ -3,11 +3,13 @@
 ## Status
 
 Kode backend dan Flutter ditambahkan pada 25 Oktober 2026. image_picker sudah
-terpasang dan tercatat pada lockfile; path public/storage tersedia. P2/P3 belum
-ditutup: build Android, email nyata ke Mailpit, akses URL foto, serta alur manual
-perangkat belum dikonfirmasi hasilnya.
+terpasang dan tercatat pada lockfile; path public/storage tersedia. Pengguna kemudian
+melaporkan pengujian manual P2–P6 PASS; agen tidak mengulang pengujian perangkat tersebut.
 Tidak ada migration baru: users sudah memiliki email_verified_at dan photo_path;
 tabel password_reset_tokens juga sudah tersedia sejak P0.
+
+Pengujian sebelumnya ditunda, kemudian dikonfirmasi PASS oleh pengguna. Tambahan
+foto pendanaan sesudah konfirmasi ini memiliki checklist baru pada FUNDING_AND_WISHLIST.md.
 
 ## Menjalankan perubahan
 
@@ -127,7 +129,8 @@ Test Flutter memakai HTTP loopback, gateway, dan picker terkontrol; hasilnya tid
 membuktikan izin native, akses galeri/kamera, atau pemulihan aktivitas pada Android.
 Hasil eksekusi terbaru dicatat pada ROADMAP.md setelah pengujian selesai.
 
-Hasil eksekusi 25 Oktober 2026:
+Hasil otomatis awal P2/P3, sebelum konfirmasi manual pengguna dan tambahan foto
+pendanaan (25 Oktober 2026). Status terkini ada di bagian Status dan QUALITY_AND_CLEANUP.md:
 
 | Pemeriksaan | Hasil |
 | --- | --- |
@@ -144,7 +147,7 @@ pubspec.yaml dan pubspec.lock sudah memuat image_picker 1.1.2. Pemeriksaan sebel
 push menjalankan analyzer termasuk entrypoint dan adapter DevicePhotoPicker;
 hasilnya tidak membuktikan build atau operasi plugin di perangkat nyata.
 
-## Checklist manual (belum dikonfirmasi)
+## Checklist manual P2/P3 (PASS dilaporkan pengguna)
 
 1. Edit nama, simpan, buka ulang aplikasi: nama baru tetap ada.
 2. Ganti email tanpa/password salah ditolak; dengan password benar berhasil dan

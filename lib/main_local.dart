@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'core/presentation/app_layout.dart';
 
 import 'core/config/api_config.dart';
 import 'core/network/api_client.dart';
 import 'core/network/api_exception.dart';
 import 'features/health/data/health_repository.dart';
 
-void main() => runApp(const LocalBackendApp());
+void main() =>
+    runApp(kIsWeb ? const UnsupportedPlatformApp() : const LocalBackendApp());
 
 /// Entrypoint diagnostik P0; autentikasi Laravel tersedia di main.dart.
 class LocalBackendApp extends StatelessWidget {
@@ -82,7 +85,7 @@ class _HealthScreenState extends State<_HealthScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(error is ApiException
-                            ? error.message
+                            ? error.displayMessage
                             : 'Pemeriksaan koneksi gagal.'),
                         const SizedBox(height: 12),
                         ElevatedButton(

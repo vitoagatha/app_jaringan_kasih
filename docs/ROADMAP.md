@@ -3,6 +3,11 @@
 Tujuan: belajar Flutter dan backend Laravel secara lokal. Database PostgreSQL, storage disk lokal, email Mailpit.
 Setup, instalasi, migrasi, dan Git/commit/push dijelaskan dahulu agar pengguna dapat menjalankannya sendiri.
 
+Status terbaru 25 Oktober 2026: pengguna melaporkan manual P2–P6 PASS. Catatan progres
+di bawah merekam hasil saat tiap tahap dibuat. Tambahan foto pendanaan sesudah
+konfirmasi ini diuji otomatis dan menunggu migration serta manual baru;
+lihat [FUNDING_AND_WISHLIST.md](FUNDING_AND_WISHLIST.md).
+
 | Tahap | Lingkup |
 | --- | --- |
 | P0 | Lingkungan lokal, Compose, koneksi PostgreSQL, kontrak API, migrations/seeder awal, client health Flutter, test, dokumentasi |
@@ -35,7 +40,7 @@ Transaksi/pembayaran, persetujuan admin, popularitas, deployment, dan distribusi
 P0 selesai diverifikasi pada 25 Oktober 2026 berdasarkan pemeriksaan lokal dan hasil eksekusi pengguna di atas.
 Tahap berikutnya P1: registrasi, login/logout, Sanctum, token, dan pemulihan sesi.
 Entrypoint diagnostik P0 adalah lib/main_local.dart. P1 mengganti lib/main.dart
-dengan autentikasi Laravel; halaman fitur Firebase lama belum dihubungkan.
+dengan autentikasi Laravel; halaman fitur Firebase lama kemudian dihapus pada P6.
 
 ## Progres P1
 
@@ -68,7 +73,28 @@ belum dikonfirmasi hasil manualnya. Konfigurasi SMTP terbaca smtp/mailpit/1025;
 path public/storage tersedia pada pemeriksaan sebelum push.
 P2/P3 belum ditutup sebelum dependency/native build dan pengujian perangkat dikonfirmasi.
 
-## Catatan review fondasi P0
+## Progres P4/P5
+
+Pengguna meminta menunda pengujian manual P2/P3 dan melanjutkan implementasi P4/P5.
+Kode kategori/pendanaan pemilik, draft/published, wishlist per user, pencarian judul,
+filter, pagination, dan urutan terbaru tersedia pada backend dan Flutter.
+Backend: 48 test lulus (262 assertion); Flutter: 70 test lulus; analyzer terkait bersih.
+Migration baru untuk fundings/wishlists belum diterapkan pada database belajar;
+test memakai database testing terpisah. Pengujian emulator P4/P5 belum dilakukan.
+Detail kontrak dan langkah migration: [FUNDING_AND_WISHLIST.md](FUNDING_AND_WISHLIST.md).
+P2/P3 dan P4/P5 tetap menunggu verifikasi manual; transaksi/pembayaran tetap ditunda.
+
+## Progres P6
+
+Kode P6 tersedia: layout responsif, aksesibilitas dasar, retry foto, error/offline,
+Retry-After, perlindungan form saat revalidasi sesi background, dan fallback browser.
+Source/config/dependency Firebase serta library lama yang tidak dipakai dibersihkan;
+lockfile/registrasi plugin sudah diperbarui. Flutter lulus 84 test; analyzer seluruh
+project bersih. Rincian: [QUALITY_AND_CLEANUP.md](QUALITY_AND_CLEANUP.md).
+Build Android pasca-cleanup dan pengujian manual P2–P6 belum dikonfirmasi.
+P6 tidak membuat migration baru; migration P4 pada database belajar masih Pending.
+
+## Catatan review fondasi P0 (historis)
 
 - Timeout client: mencegah pengiriman setelah token/koneksi terlambat, menghentikan pembacaan respons, dan menolak request pada client yang ditutup; test regresi lulus.
 - Script composer dev: memakai --no-reload, konsisten dengan Compose dan Dockerfile.

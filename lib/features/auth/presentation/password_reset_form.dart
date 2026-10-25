@@ -119,7 +119,7 @@ class _PasswordResetFormState extends State<PasswordResetForm> {
                               : 'Konfirmasi password tidak cocok.'),
                     ],
                     if (session.error != null)
-                      Text(session.error!.message,
+                      Text(session.error!.displayMessage,
                           style: TextStyle(
                               color: Theme.of(context).colorScheme.error)),
                     FilledButton(

@@ -92,10 +92,10 @@ tidak disimpan. Android memakai encryptedSharedPreferences dan allowBackup=false
 sesuai petunjuk package untuk menghindari restore data tanpa kunci enkripsi.
 
 Entrypoint `lib/main.dart` menjalankan form dan gate sesi baru tanpa inisialisasi
-Firebase. Layar login/registrasi lama serta halaman Firestore belum dihubungkan.
-Setelah login, halaman akun menampilkan nama dan email dari server. Halaman
-pendanaan memakai backend lokal akan dibuat pada P4. Dependency dan file Firebase
-lama masih ada untuk migrasi bertahap; penghapusannya dijadwalkan P6.
+Firebase. Setelah login, halaman akun menampilkan nama dan email dari server.
+Pendanaan Laravel tersedia pada P4/P5. Pada P6, source/config/dependency Firebase
+lama sudah dihapus. Pemeriksaan sesi background mempertahankan form pengguna yang
+sama sambil memblokir interaksi; kegagalan/401 tetap mengikuti gate sesi.
 
 Repository mengirim token Bearer dari memori dan menyimpannya setelah login atau
 registrasi berhasil. Jika penyimpanan gagal, repository mengupayakan pencabutan
