@@ -73,8 +73,13 @@ dart run tool/check_backend.dart http://127.0.0.1:8000/api/v1/
 docker compose up -d --wait
 docker compose ps
 flutter devices
-flutter run -t lib/main_local.dart
+flutter run
 ```
+
+Entrypoint utama sekarang memakai autentikasi Laravel P1. Untuk diagnostik koneksi
+P0 saja, gunakan `flutter run -t lib/main_local.dart`. Setelah penambahan plugin
+native, hentikan proses Flutter lalu jalankan ulang; hot reload tidak cukup.
+Checklist autentikasi perangkat ada di [AUTHENTICATION.md](AUTHENTICATION.md).
 
 Menutup Flutter tidak menghentikan backend. Untuk menghentikan layanan:
 
@@ -110,7 +115,7 @@ API secara default hanya dipublikasikan ke loopback. Untuk sesi pengujian LAN:
 ```powershell
 $env:API_BIND_ADDRESS = '0.0.0.0'
 docker compose up -d --no-deps --force-recreate --wait api
-flutter run -t lib/main_local.dart --dart-define=API_BASE_URL=http://IP_KOMPUTER:8000/api/v1/
+flutter run --dart-define=API_BASE_URL=http://IP_KOMPUTER:8000/api/v1/
 ```
 
 Ganti `IP_KOMPUTER` dengan IP LAN yang sebenarnya. Jika diminta Windows Firewall, izinkan hanya jaringan privat yang digunakan.
@@ -128,10 +133,13 @@ docker compose exec api php artisan test
 flutter test --no-pub
 ```
 
-Backend menguji health HTTP, respons error, PostgreSQL nyata, unique slug, dan seeder idempotent.
-Flutter menguji parsing API, error 401/422, respons tidak valid, timeout, loading, dan retry.
-Test HTTP Dart memakai server loopback sementara; widget test memakai hasil health yang dikontrol.
-Pengujian otomatis ini tidak membuktikan akses dari HP/emulator; itu diuji melalui `main_local.dart`.
+Backend menguji health HTTP, respons error, PostgreSQL nyata, unique slug, seeder,
+dan autentikasi/token Sanctum. Flutter menguji API client, timeout/error, form,
+penyimpanan/pemulihan token, lifecycle, logout, loading, dan retry.
+Test HTTP Dart memakai server loopback sementara; widget test memakai gateway
+yang dikontrol dan test adapter storage memakai mock platform. Test ini tidak
+membuktikan akses perangkat atau penyimpanan token native setelah proses ditutup;
+ikuti checklist manual autentikasi dan diagnostik `main_local.dart` bila perlu.
 
 ### Pemisahan database test
 
@@ -156,6 +164,34 @@ docker compose exec postgres createdb -U jaringan_kasih -O jaringan_kasih jaring
 ```
 
 ## Troubleshooting
+
+### Android gagal pada androidJdkImage / JdkImageTransform / jlink
+
+Lingkungan yang diperiksa memakai JBR Java 21.0.4 dari Android Studio dan Flutter
+compileSdk 35. Konfigurasi lama AGP 8.1.0 + Gradle 8.3 memicu kegagalan transform
+core-for-system-modules.jar pada plugin path_provider_android. AGP sebelum 8.2.1
+memiliki masalah transform ini dengan Java 21 dan sourceCompatibility; Gradle 8.3
+juga belum mendukung Java 21 sebagai runtime.
+
+Konfigurasi project disesuaikan menjadi AGP 8.6.1 dan Gradle wrapper 8.7.
+AGP 8.6 mendukung API 35 dan membutuhkan minimal Gradle 8.7; Gradle 8.7 dapat
+berjalan pada Java 21. Versi Kotlin, dependency Dart, dan target bytecode Java
+aplikasi tidak diubah untuk perbaikan ini. Peringatan source/target 8 dari plugin
+dapat tetap muncul; itu berbeda dari kegagalan transform jlink.
+
+Referensi: [kompatibilitas AGP 8.6](https://developer.android.com/build/releases/agp-8-6-0-release-notes)
+dan [kompatibilitas Java/Gradle](https://docs.gradle.org/current/userguide/compatibility.html).
+
+Jalankan dari root project setelah menghentikan build sebelumnya:
+
+```powershell
+flutter run
+```
+
+Build pertama membutuhkan internet untuk mengambil Gradle/AGP versi yang dipilih
+dan dapat memakan waktu. Perubahan konfigurasi sudah diperiksa melalui diff;
+pengguna kemudian mengonfirmasi build Android dan login emulator berhasil.
+Tidak perlu menghapus cache Gradle global atau mereset emulator sebagai langkah awal.
 
 ### CLI database berhasil tetapi HTTP health mengembalikan 503
 
