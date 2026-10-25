@@ -7,6 +7,7 @@ import 'features/auth/application/session_controller.dart';
 import 'features/auth/data/auth_repository.dart';
 import 'features/auth/data/token_store.dart';
 import 'features/auth/presentation/auth_app.dart';
+import 'features/profile/data/device_photo_picker.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,5 +17,5 @@ void main() {
     store: SecureTokenStore(baseUri),
     deviceName: 'Jaringan Kasih ${Platform.operatingSystem}',
   ));
-  runApp(JaringanKasihApp(session: session));
+  runApp(JaringanKasihApp(session: session, photoPicker: DevicePhotoPicker()));
 }

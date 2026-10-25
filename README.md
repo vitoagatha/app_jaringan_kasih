@@ -3,9 +3,12 @@
 Project belajar Flutter dengan Laravel REST API, PostgreSQL, storage lokal, dan Mailpit.
 
 Status: P0 dan P1 selesai untuk lingkup lokal Android; build dan alur autentikasi
-manual di emulator dilaporkan PASS oleh pengguna. Tahap berikutnya adalah review P1 sebelum P2.
+manual di emulator dilaporkan PASS oleh pengguna. P2/P3 dilanjutkan sesuai instruksi pengguna.
 Entrypoint `lib/main.dart` menggunakan Laravel untuk registrasi, login, pemulihan sesi,
 dan logout. `lib/main_local.dart` tetap tersedia untuk diagnostik backend.
+
+P2/P3 sedang diimplementasikan: profil, email/password, dan foto profil. Instalasi
+picker serta checklist perangkat mengikuti [panduan P2/P3](docs/ACCOUNT_AND_PHOTOS.md).
 
 ## Mulai lagi setelah komputer dinyalakan
 
@@ -30,6 +33,7 @@ Untuk checkout baru, ikuti instalasi pertama pada panduan lokal, termasuk `flutt
 - [Prioritas dan checklist P0](docs/ROADMAP.md)
 - [Backend Laravel](backend/README.md)
 - [Autentikasi P1 dan checklist manual](docs/AUTHENTICATION.md)
+- [Profil, email/password, dan foto profil P2/P3](docs/ACCOUNT_AND_PHOTOS.md)
 
 ## Layanan lokal
 
@@ -51,7 +55,7 @@ flutter test --no-pub
 ```
 
 Test database menggunakan `jaringan_kasih_testing`, terpisah dari `jaringan_kasih`.
-Test mencakup fondasi P0 dan autentikasi P1. Upload gambar, pendanaan, dan transaksi
-belum diimplementasikan pada backend lokal. Halaman lama yang memakai Firebase
+Test mencakup fondasi P0, autentikasi P1, serta kode akun/foto P2/P3.
+Pendanaan dan transaksi belum diimplementasikan pada backend lokal. Halaman lama yang memakai Firebase
 masih disimpan dan belum dihubungkan ke alur aplikasi utama baru.
 `.env`, password pribadi, token, dan APP_KEY tidak boleh dimasukkan ke Git.

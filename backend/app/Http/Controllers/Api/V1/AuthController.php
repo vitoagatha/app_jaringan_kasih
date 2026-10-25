@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use App\Support\ApiResponse;
+use App\Support\UserData;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -38,16 +39,19 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $user = User::where('email', $data['email'])->first();
-        if (! $user || ! Hash::check($data['password'], $user->password)) {
-            return ApiResponse::error('Email atau password tidak sesuai.', 401)
-                ->header('Cache-Control', 'no-store');
-        }
-        if (Hash::needsRehash($user->password)) {
-            $user->forceFill(['password' => Hash::make($data['password'])])->save();
-        }
 
-        return $this->issueToken($user, $data['device_name']);
+        return DB::transaction(function () use ($data) {
+            $user = User::where('email', $data['email'])->lockForUpdate()->first();
+            if (! $user || ! Hash::check($data['password'], $user->password)) {
+                return ApiResponse::error('Email atau password tidak sesuai.', 401)
+                    ->header('Cache-Control', 'no-store');
+            }
+            if (Hash::needsRehash($user->password)) {
+                $user->forceFill(['password' => Hash::make($data['password'])])->save();
+            }
+
+            return $this->issueToken($user, $data['device_name']);
+        });
     }
 
     public function me(Request $request): JsonResponse
@@ -81,6 +85,6 @@ class AuthController extends Controller
 
     private function userData(User $user): array
     {
-        return $user->only(['id', 'name', 'email', 'email_verified_at']);
+        return UserData::from($user);
     }
 }

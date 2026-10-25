@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:app_jaringan_kasih/core/network/api_exception.dart';
+import 'package:app_jaringan_kasih/core/network/api_client.dart';
 import 'package:app_jaringan_kasih/features/auth/data/auth_repository.dart';
 import 'package:app_jaringan_kasih/features/auth/data/token_store.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -55,12 +57,18 @@ void main() {
     requests = [];
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     server.listen((request) async {
-      final raw = await utf8.decoder.bind(request).join();
+      final raw =
+          await const Utf8Decoder(allowMalformed: true).bind(request).join();
       requests.add({
         'path': request.uri.path,
         'method': request.method,
         'authorization': request.headers.value('authorization'),
-        'body': raw.isEmpty ? null : jsonDecode(raw),
+        'content_type': request.headers.contentType.toString(),
+        'body': raw.isEmpty
+            ? null
+            : request.headers.contentType?.mimeType == 'application/json'
+                ? jsonDecode(raw)
+                : raw,
       });
       final reply = replies.removeAt(0);
       request.response.statusCode = reply.$1;
@@ -86,6 +94,102 @@ void main() {
   test('No stored token means signed out without an HTTP request', () async {
     expect(await auth.restore(), isNull);
     expect(requests, isEmpty);
+  });
+
+  test(
+      'Profile update returns fresh verification and device-relative photo URL',
+      () async {
+    replies.add((
+      200,
+      {
+        'user': {
+          ...user,
+          'name': 'Baru',
+          'email_verified_at': '2026-10-25',
+          'photo_url': '/storage/avatars/test.png'
+        }
+      }
+    ));
+    final result = await auth.updateProfile(
+        ' Baru ', ' belajar@example.test ', '  password  ');
+    expect(result.name, 'Baru');
+    expect(result.emailVerified, isTrue);
+    expect(auth.photoUri(result)!.host, '127.0.0.1');
+    expect(auth.photoUri(result)!.port, server.port);
+    expect(requests.single['method'], 'PATCH');
+    expect(
+        (requests.single['body'] as Map)['current_password'], '  password  ');
+  });
+
+  test('Password change clears persisted session after server success',
+      () async {
+    store.value = 'saved';
+    replies.addAll([
+      (200, {'user': user}),
+      (200, null)
+    ]);
+    await auth.restore();
+    await auth.changePassword('old', 'new-password', 'new-password');
+    expect(store.value, isNull);
+    expect(await auth.restore(), isNull);
+  });
+
+  test('Password recovery sends email, token and untrimmed new password',
+      () async {
+    replies.addAll([(200, null), (200, null)]);
+    await auth.forgotPassword(' belajar@example.test ');
+    await auth.resetPassword(
+        ' belajar@example.test ', ' token ', '  password  ', '  password  ');
+    expect(requests.first['path'], '/api/v1/auth/forgot-password');
+    expect(requests.last['body'], {
+      'email': 'belajar@example.test',
+      'token': 'token',
+      'password': '  password  ',
+      'password_confirmation': '  password  '
+    });
+    expect(store.value, isNull);
+  });
+
+  test('Photo upload sends multipart boundary, field name, MIME and token',
+      () async {
+    store.value = 'saved';
+    replies.addAll([
+      (200, {'user': user}),
+      (200, {'user': user}),
+      (200, {'user': user})
+    ]);
+    await auth.restore();
+    await auth.uploadPhoto(
+        MultipartPhoto(Uint8List.fromList([255, 216, 255, 0]), 'image/jpeg'));
+    expect(requests.last['path'], '/api/v1/auth/profile/photo');
+    expect(requests.last['content_type'],
+        contains('multipart/form-data; boundary='));
+    expect(requests.last['body'],
+        contains('name="photo"; filename="profile.jpg"'));
+    expect(requests.last['body'], contains('Content-Type: image/jpeg'));
+    expect(requests.last['authorization'], 'Bearer saved');
+    await auth.deletePhoto();
+    expect(requests.last['method'], 'DELETE');
+  });
+
+  test('Foreign or traversing photo URLs are rejected', () {
+    for (final path in [
+      'https://example.test/storage/avatars/a.png',
+      '/storage/avatars/../secret',
+      '//example.test/avatar'
+    ]) {
+      expect(
+          auth.photoUri(AuthUser(
+              id: 1, name: 'Nama', email: 'test@example.test', photoUrl: path)),
+          isNull);
+    }
+  });
+
+  test('Verification request uses authenticated API path', () async {
+    replies.add((200, null));
+    await auth.sendVerification();
+    expect(requests.single['path'],
+        '/api/v1/auth/email/verification-notification');
   });
 
   test(

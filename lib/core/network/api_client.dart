@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
+import 'dart:typed_data';
 
 import '../config/api_config.dart';
 import 'api_exception.dart';
@@ -23,7 +25,10 @@ class ApiClient {
   Future<Object?> get(String path) => request('GET', path);
 
   Future<Object?> request(String method, String path,
-      {Map<String, Object?>? body}) async {
+      {Map<String, Object?>? body, MultipartPhoto? photo}) async {
+    if (body != null && photo != null) {
+      throw ArgumentError('Gunakan JSON atau multipart, bukan keduanya.');
+    }
     const timeoutError =
         ApiException('Koneksi terlalu lama. Silakan coba lagi.');
     const closedError = ApiException('Koneksi API sudah ditutup.');
@@ -73,6 +78,15 @@ class ApiClient {
         if (body != null) {
           request.headers.contentType = ContentType.json;
           request.write(jsonEncode(body));
+        }
+        if (photo != null) {
+          final boundary =
+              'jk${List.generate(24, (_) => Random.secure().nextInt(16).toRadixString(16)).join()}';
+          final bytes = photo.encode(boundary);
+          request.headers.contentType =
+              ContentType.parse('multipart/form-data; boundary=$boundary');
+          request.contentLength = bytes.length;
+          request.add(bytes);
         }
         final response = await request.close();
         ensureActive();
@@ -133,5 +147,33 @@ class ApiClient {
   void close() {
     _closed = true;
     _httpClient.close(force: true);
+  }
+}
+
+class MultipartPhoto {
+  static const maxBytes = 2 * 1024 * 1024;
+  final Uint8List bytes;
+  final String mimeType;
+
+  MultipartPhoto(this.bytes, this.mimeType) {
+    if (!['image/jpeg', 'image/png', 'image/webp'].contains(mimeType) ||
+        bytes.isEmpty ||
+        bytes.length > maxBytes) {
+      throw const ApiException('Gunakan JPEG, PNG, atau WebP maksimal 2 MB.');
+    }
+  }
+
+  Uint8List encode(String boundary) {
+    final extension = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp'
+    }[mimeType]!;
+    return (BytesBuilder(copy: false)
+          ..add(utf8.encode(
+              '--$boundary\r\nContent-Disposition: form-data; name="photo"; filename="profile.$extension"\r\nContent-Type: $mimeType\r\n\r\n'))
+          ..add(bytes)
+          ..add(utf8.encode('\r\n--$boundary--\r\n')))
+        .takeBytes();
   }
 }

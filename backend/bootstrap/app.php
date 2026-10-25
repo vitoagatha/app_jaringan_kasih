@@ -43,6 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 403 => 'Anda tidak memiliki izin untuk tindakan ini.',
                 404 => 'Endpoint atau data tidak ditemukan.',
                 405 => 'Metode HTTP tidak didukung.',
+                413 => 'Ukuran unggahan melebihi batas server.',
                 429 => 'Terlalu banyak permintaan. Silakan coba lagi nanti.',
                 default => 'Terjadi kesalahan pada server.',
             };

@@ -30,6 +30,10 @@ fitur Flutter mengikuti implementasi fitur. Kontrak dan status P1 tercatat pada
 
 ## Endpoint yang tersedia
 
+Kontrak tambahan profil, email/password, dan foto P2/P3 tercatat pada
+[ACCOUNT_AND_PHOTOS.md](ACCOUNT_AND_PHOTOS.md). URL foto adalah path relatif
+ke origin API perangkat; tautan verifikasi email memakai APP_URL backend.
+
 | Metode | Path | Kegunaan |
 | --- | --- | --- |
 | GET | `/` | Informasi layanan |
