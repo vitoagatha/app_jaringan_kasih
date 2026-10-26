@@ -48,8 +48,9 @@ class AppStatusPanel extends StatelessWidget {
 }
 
 ThemeData appTheme() => ThemeData(
-      colorSchemeSeed: Colors.teal,
+      colorSchemeSeed: const Color(0xFF199FA5),
       useMaterial3: true,
+      scaffoldBackgroundColor: const Color(0xFFF7FAFA),
       visualDensity: VisualDensity.standard,
       materialTapTargetSize: MaterialTapTargetSize.padded,
       inputDecorationTheme:

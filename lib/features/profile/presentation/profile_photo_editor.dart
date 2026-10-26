@@ -123,8 +123,6 @@ class _ProfilePhotoEditorState extends State<ProfilePhotoEditor> {
           child: ClipRRect(
               borderRadius: BorderRadius.circular(12), child: preview)),
       const SizedBox(height: 8),
-      const Text(
-          'JPEG, PNG, atau WebP; maksimal 2 MB, dimensi 32–4096 piksel.'),
       if (_message != null) Text(_message!),
       if (widget.session.error?.errors['photo'] != null)
         Text(widget.session.error!.errors['photo']!.join('\n')),

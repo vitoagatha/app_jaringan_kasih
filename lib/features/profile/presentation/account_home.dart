@@ -10,9 +10,16 @@ class AccountHome extends StatefulWidget {
   final SessionController session;
   final PhotoPicker? photoPicker;
   final VoidCallback? onExplore;
+  final VoidCallback? onMyFundings;
+  final VoidCallback? onWishlist;
 
   const AccountHome(
-      {super.key, required this.session, this.photoPicker, this.onExplore});
+      {super.key,
+      required this.session,
+      this.photoPicker,
+      this.onExplore,
+      this.onMyFundings,
+      this.onWishlist});
 
   @override
   State<AccountHome> createState() => _AccountHomeState();
@@ -78,25 +85,56 @@ class _AccountHomeState extends State<AccountHome> {
     }
   }
 
+  Widget _menuTile({
+    required Key key,
+    required IconData icon,
+    required String title,
+    required VoidCallback? onTap,
+    String? subtitle,
+    Widget? trailing,
+    Color? foregroundColor,
+  }) =>
+      ListTile(
+        key: key,
+        leading: Icon(icon, color: foregroundColor),
+        title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
+        subtitle: subtitle == null ? null : Text(subtitle),
+        trailing: trailing ?? const Icon(Icons.chevron_right),
+        onTap: onTap,
+      );
+
   @override
   Widget build(BuildContext context) {
     final session = widget.session;
+    final name = session.user!.name.trim();
+    final initial = name.isEmpty
+        ? '?'
+        : String.fromCharCode(name.runes.first).toUpperCase();
     return Scaffold(
-      appBar: AppBar(title: const Text('Jaringan Kasih')),
+      appBar: AppBar(title: const Text('Akun saya')),
       body: AppContent(
           child: ListView(padding: const EdgeInsets.all(24), children: [
-        Text('Halo, ${session.user!.name}',
-            style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 12),
-        Text(session.user!.email),
-        Text(session.user!.emailVerified
-            ? 'Email terverifikasi'
-            : 'Email belum terverifikasi'),
-        if (!session.user!.emailVerified)
-          OutlinedButton(
-              key: const Key('verify_email'),
-              onPressed: session.busy ? null : _verify,
-              child: const Text('Kirim verifikasi email')),
+        Card(
+            child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(children: [
+                  CircleAvatar(radius: 26, child: Text(initial)),
+                  const SizedBox(width: 14),
+                  Expanded(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        Text('Halo, ${session.user!.name}',
+                            key: const Key('account_greeting'),
+                            style: Theme.of(context).textTheme.titleLarge),
+                        Text(session.user!.email,
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                        Text(session.user!.emailVerified
+                            ? 'Email terverifikasi'
+                            : 'Email belum terverifikasi'),
+                      ])),
+                  const Icon(Icons.settings_outlined),
+                ]))),
         if (_message != null)
           Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -107,119 +145,191 @@ class _AccountHomeState extends State<AccountHome> {
               child: Text(session.error!.displayMessage,
                   style:
                       TextStyle(color: Theme.of(context).colorScheme.error))),
-        const Divider(height: 32),
-        ProfilePhotoEditor(session: session, picker: widget.photoPicker),
-        const Divider(height: 32),
-        OutlinedButton(
-            key: const Key('edit_profile'),
-            onPressed: session.busy
-                ? null
-                : () {
-                    session.clearError();
-                    setState(() {
-                      _editing = !_editing;
-                      _name.text = session.user!.name;
-                      _email.text = session.user!.email;
-                      _emailPassword.clear();
-                    });
-                  },
-            child: Text(_editing ? 'Batal edit profil' : 'Edit profil')),
-        if (_editing)
-          Form(
-              key: _profileForm,
+        const SizedBox(height: 20),
+        Text('Pengaturan akun', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 8),
+        Card(
+            clipBehavior: Clip.antiAlias,
+            child: Column(children: [
+              Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ProfilePhotoEditor(
+                      session: session, picker: widget.photoPicker)),
+              const Divider(height: 1, indent: 56),
+              _menuTile(
+                key: const Key('edit_profile'),
+                icon: Icons.person_outline,
+                title: _editing ? 'Batal edit profil' : 'Edit profil',
+                trailing:
+                    Icon(_editing ? Icons.expand_less : Icons.chevron_right),
+                onTap: session.busy
+                    ? null
+                    : () {
+                        session.clearError();
+                        setState(() {
+                          _editing = !_editing;
+                          _name.text = session.user!.name;
+                          _email.text = session.user!.email;
+                          _emailPassword.clear();
+                        });
+                      },
+              ),
+              if (_editing)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Form(
+                      key: _profileForm,
+                      child: Column(children: [
+                        AccountField(
+                            key: const Key('profile_name'),
+                            session: session,
+                            controller: _name,
+                            field: 'name',
+                            label: 'Nama',
+                            validator: (value) => value == null ||
+                                    value.trim().isEmpty ||
+                                    value.trim().runes.length > 100
+                                ? 'Nama wajib diisi, maksimal 100 karakter.'
+                                : null),
+                        AccountField(
+                            session: session,
+                            controller: _email,
+                            field: 'email',
+                            label: 'Email',
+                            validator: validateEmail),
+                        AccountField(
+                            session: session,
+                            controller: _emailPassword,
+                            field: 'current_password',
+                            label: 'Password saat ini (jika mengganti email)',
+                            obscure: true,
+                            optional: true),
+                        FilledButton(
+                            key: const Key('profile_save'),
+                            onPressed: session.busy ? null : _saveProfile,
+                            child: const Text('Simpan profil')),
+                      ])),
+                ),
+              const Divider(height: 1, indent: 56),
+              _menuTile(
+                key: const Key('change_password'),
+                icon: Icons.lock_outline,
+                title:
+                    _changingPassword ? 'Batal ubah password' : 'Ubah password',
+                trailing: Icon(_changingPassword
+                    ? Icons.expand_less
+                    : Icons.chevron_right),
+                onTap: session.busy
+                    ? null
+                    : () {
+                        session.clearError();
+                        setState(() {
+                          _changingPassword = !_changingPassword;
+                          _currentPassword.clear();
+                          _newPassword.clear();
+                          _confirmation.clear();
+                        });
+                      },
+              ),
+              if (_changingPassword)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Form(
+                      key: _passwordForm,
+                      child: Column(children: [
+                        const Padding(
+                            padding: EdgeInsets.only(bottom: 16),
+                            child: Text(
+                                'Semua sesi akan dikeluarkan setelah password diubah.')),
+                        AccountField(
+                            session: session,
+                            controller: _currentPassword,
+                            field: 'current_password',
+                            label: 'Password saat ini',
+                            obscure: true),
+                        AccountField(
+                            session: session,
+                            controller: _newPassword,
+                            field: 'password',
+                            label: 'Password baru',
+                            obscure: true,
+                            validator: validateNewPassword),
+                        AccountField(
+                            session: session,
+                            controller: _confirmation,
+                            field: 'password_confirmation',
+                            label: 'Konfirmasi password',
+                            obscure: true,
+                            validator: (value) => value == _newPassword.text
+                                ? null
+                                : 'Konfirmasi password tidak cocok.'),
+                        FilledButton(
+                            key: const Key('password_save'),
+                            onPressed: session.busy ? null : _savePassword,
+                            child: const Text('Simpan password baru')),
+                      ])),
+                ),
+              if (!session.user!.emailVerified) ...[
+                const Divider(height: 1, indent: 56),
+                _menuTile(
+                    key: const Key('verify_email'),
+                    icon: Icons.mark_email_unread_outlined,
+                    title: 'Kirim verifikasi email',
+                    subtitle: 'Email belum terverifikasi',
+                    onTap: session.busy ? null : _verify),
+              ],
+              const Divider(height: 1, indent: 56),
+              _menuTile(
+                  key: const Key('account_check_session'),
+                  icon: Icons.sync,
+                  title: 'Periksa sesi',
+                  onTap: session.busy ? null : session.restore),
+            ])),
+        if (widget.onExplore != null ||
+            widget.onMyFundings != null ||
+            widget.onWishlist != null) ...[
+          const SizedBox(height: 20),
+          Text('Aktivitas', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          Card(
+              clipBehavior: Clip.antiAlias,
               child: Column(children: [
-                AccountField(
-                    key: const Key('profile_name'),
-                    session: session,
-                    controller: _name,
-                    field: 'name',
-                    label: 'Nama',
-                    validator: (value) => value == null ||
-                            value.trim().isEmpty ||
-                            value.trim().runes.length > 100
-                        ? 'Nama wajib diisi, maksimal 100 karakter.'
-                        : null),
-                AccountField(
-                    session: session,
-                    controller: _email,
-                    field: 'email',
-                    label: 'Email',
-                    validator: validateEmail),
-                AccountField(
-                    session: session,
-                    controller: _emailPassword,
-                    field: 'current_password',
-                    label: 'Password saat ini (jika mengganti email)',
-                    obscure: true,
-                    optional: true),
-                FilledButton(
-                    key: const Key('profile_save'),
-                    onPressed: session.busy ? null : _saveProfile,
-                    child: const Text('Simpan profil')),
+                if (widget.onExplore != null)
+                  _menuTile(
+                      key: const Key('account_explore_fundings'),
+                      icon: Icons.search,
+                      title: 'Jelajahi pendanaan',
+                      onTap: widget.onExplore),
+                if (widget.onMyFundings != null) ...[
+                  if (widget.onExplore != null)
+                    const Divider(height: 1, indent: 56),
+                  _menuTile(
+                      key: const Key('account_my_fundings'),
+                      icon: Icons.volunteer_activism_outlined,
+                      title: 'Pendanaan saya',
+                      onTap: widget.onMyFundings),
+                ],
+                if (widget.onWishlist != null) ...[
+                  if (widget.onExplore != null || widget.onMyFundings != null)
+                    const Divider(height: 1, indent: 56),
+                  _menuTile(
+                      key: const Key('account_wishlist'),
+                      icon: Icons.favorite_border,
+                      title: 'Wishlist',
+                      onTap: widget.onWishlist),
+                ],
               ])),
-        OutlinedButton(
-            key: const Key('change_password'),
-            onPressed: session.busy
-                ? null
-                : () {
-                    session.clearError();
-                    setState(() {
-                      _changingPassword = !_changingPassword;
-                      _currentPassword.clear();
-                      _newPassword.clear();
-                      _confirmation.clear();
-                    });
-                  },
-            child: Text(
-                _changingPassword ? 'Batal ubah password' : 'Ubah password')),
-        if (_changingPassword)
-          Form(
-              key: _passwordForm,
-              child: Column(children: [
-                const Padding(
-                    padding: EdgeInsets.only(bottom: 16),
-                    child: Text(
-                        'Semua sesi akan dikeluarkan setelah password diubah.')),
-                AccountField(
-                    session: session,
-                    controller: _currentPassword,
-                    field: 'current_password',
-                    label: 'Password saat ini',
-                    obscure: true),
-                AccountField(
-                    session: session,
-                    controller: _newPassword,
-                    field: 'password',
-                    label: 'Password baru',
-                    obscure: true,
-                    validator: validateNewPassword),
-                AccountField(
-                    session: session,
-                    controller: _confirmation,
-                    field: 'password_confirmation',
-                    label: 'Konfirmasi password',
-                    obscure: true,
-                    validator: (value) => value == _newPassword.text
-                        ? null
-                        : 'Konfirmasi password tidak cocok.'),
-                FilledButton(
-                    key: const Key('password_save'),
-                    onPressed: session.busy ? null : _savePassword,
-                    child: const Text('Simpan password baru')),
-              ])),
-        const SizedBox(height: 24),
-        OutlinedButton(
-            onPressed: session.busy ? null : session.restore,
-            child: const Text('Periksa sesi')),
-        if (widget.onExplore != null)
-          FilledButton(
-              key: const Key('explore_fundings'),
-              onPressed: session.busy ? null : widget.onExplore,
-              child: const Text('Jelajahi pendanaan')),
-        FilledButton(
-            key: const Key('auth_logout'),
-            onPressed: session.busy ? null : session.logout,
-            child: Text(session.busy ? 'Memproses...' : 'Keluar')),
+        ],
+        const SizedBox(height: 20),
+        Card(
+            clipBehavior: Clip.antiAlias,
+            child: _menuTile(
+                key: const Key('auth_logout'),
+                icon: Icons.logout,
+                title: session.busy ? 'Memproses...' : 'Keluar',
+                foregroundColor: Theme.of(context).colorScheme.error,
+                trailing: const Icon(Icons.chevron_right),
+                onTap: session.busy ? null : session.logout)),
       ])),
     );
   }
