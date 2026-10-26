@@ -5,16 +5,22 @@ import 'package:flutter/material.dart';
 
 import '../application/session_controller.dart';
 import '../../profile/data/photo_selection.dart';
-import '../../profile/presentation/account_home.dart';
+import '../data/onboarding_store.dart';
 import 'password_reset_form.dart';
-import '../../funding/presentation/funding_screen.dart';
+import 'signed_in_shell.dart';
+import 'welcome_screens.dart';
 import '../../../core/presentation/app_layout.dart';
 
 class JaringanKasihApp extends StatefulWidget {
   final SessionController session;
   final PhotoPicker? photoPicker;
+  final OnboardingStore? onboardingStore;
 
-  const JaringanKasihApp({super.key, required this.session, this.photoPicker});
+  const JaringanKasihApp(
+      {super.key,
+      required this.session,
+      this.photoPicker,
+      this.onboardingStore});
 
   @override
   State<JaringanKasihApp> createState() => _JaringanKasihAppState();
@@ -22,12 +28,37 @@ class JaringanKasihApp extends StatefulWidget {
 
 class _JaringanKasihAppState extends State<JaringanKasihApp>
     with WidgetsBindingObserver {
-  bool _showFunding = false;
+  bool _onboardingReady = false;
+  bool _showOnboarding = false;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     unawaited(widget.session.restore());
+    if (widget.onboardingStore == null) {
+      _onboardingReady = true;
+    } else {
+      unawaited(_loadOnboarding());
+    }
+  }
+
+  Future<void> _loadOnboarding() async {
+    try {
+      _showOnboarding = !await widget.onboardingStore!.hasCompleted();
+    } catch (_) {
+      _showOnboarding = false;
+    } finally {
+      if (mounted) setState(() => _onboardingReady = true);
+    }
+  }
+
+  Future<void> _finishOnboarding() async {
+    try {
+      await widget.onboardingStore?.complete();
+    } catch (_) {
+      // Tetap izinkan pengguna masuk jika penyimpanan preferensi tidak tersedia.
+    }
+    if (mounted) setState(() => _showOnboarding = false);
   }
 
   @override
@@ -55,12 +86,16 @@ class _JaringanKasihAppState extends State<JaringanKasihApp>
           animation: widget.session,
           builder: (context, _) {
             final session = widget.session;
+            if (!_onboardingReady || session.phase == SessionPhase.restoring) {
+              return const StartupSplash();
+            }
+            if (_showOnboarding) {
+              return WelcomeOnboarding(
+                  onContinue: () => unawaited(_finishOnboarding()));
+            }
             switch (session.phase) {
               case SessionPhase.restoring:
-                return const Scaffold(
-                    body: Center(
-                        child: CircularProgressIndicator(
-                            semanticsLabel: 'Memuat sesi')));
+                return const StartupSplash();
               case SessionPhase.unavailable:
                 return Scaffold(
                   appBar: AppBar(title: const Text('Jaringan Kasih')),
@@ -72,23 +107,12 @@ class _JaringanKasihAppState extends State<JaringanKasihApp>
               case SessionPhase.signedOut:
                 return _AuthForm(session: session);
               case SessionPhase.signedIn:
-                final Widget page = _showFunding && session.funding != null
-                    ? FundingScreen(
-                        session: session,
-                        gateway: session.funding!,
-                        photoPicker: widget.photoPicker,
-                        onBack: () => setState(() => _showFunding = false))
-                    : AccountHome(
-                        session: session,
-                        photoPicker: widget.photoPicker,
-                        onExplore: session.funding == null
-                            ? null
-                            : () => setState(() => _showFunding = true));
+                final Widget page = SignedInShell(
+                    key: ValueKey(session.user!.id),
+                    session: session,
+                    photoPicker: widget.photoPicker);
                 return Stack(children: [
-                  AbsorbPointer(
-                      absorbing: session.busy,
-                      child: KeyedSubtree(
-                          key: ValueKey(session.user!.id), child: page)),
+                  AbsorbPointer(absorbing: session.busy, child: page),
                   if (session.busy)
                     const Positioned(
                         top: 0,
@@ -163,7 +187,6 @@ class _AuthFormState extends State<_AuthForm> {
           });
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('Jaringan Kasih')),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -177,7 +200,19 @@ class _AuthFormState extends State<_AuthForm> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(_register ? 'Buat akun' : 'Masuk',
-                      style: Theme.of(context).textTheme.headlineMedium),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineLarge
+                          ?.copyWith(
+                              fontSize: 36, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 8),
+                  Text(
+                    _register
+                        ? 'Bergabung untuk menemukan dan membuat pendanaan.'
+                        : 'Masuk untuk melanjutkan kebaikan bersama.',
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 24),
                   if (_register) ...[
                     TextFormField(

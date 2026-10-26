@@ -16,12 +16,24 @@ class FundingScreen extends StatefulWidget {
   final FundingGateway gateway;
   final VoidCallback onBack;
   final PhotoPicker? photoPicker;
+  final FundingList initialMode;
+  final int? initialCategoryId;
+  final int? initialFundingId;
+  final bool openCreateForm;
+  final bool showModeSwitcher;
+  final bool showBackButton;
   const FundingScreen(
       {super.key,
       required this.session,
       required this.gateway,
       required this.onBack,
-      this.photoPicker});
+      this.photoPicker,
+      this.initialMode = FundingList.explore,
+      this.initialCategoryId,
+      this.initialFundingId,
+      this.openCreateForm = false,
+      this.showModeSwitcher = true,
+      this.showBackButton = true});
   @override
   State<FundingScreen> createState() => _FundingScreenState();
 }
@@ -43,10 +55,14 @@ class _FundingScreenState extends State<FundingScreen> {
   bool _editor = false;
   bool _picking = false;
   String? _notice;
+  bool _initialDetailConsumed = false;
+  bool _initialCreateConsumed = false;
 
   @override
   void initState() {
     super.initState();
+    _mode = widget.initialMode;
+    _category = widget.initialCategoryId;
     unawaited(_load());
   }
 
@@ -97,6 +113,30 @@ class _FundingScreenState extends State<FundingScreen> {
     } finally {
       if (mounted && generation == _generation) {
         setState(() => _loading = false);
+      }
+    }
+    final initialId = widget.initialFundingId;
+    if (mounted &&
+        generation == _generation &&
+        widget.openCreateForm &&
+        !_initialCreateConsumed &&
+        _categories.isNotEmpty) {
+      _initialCreateConsumed = true;
+      setState(() {
+        _editor = true;
+        _notice = null;
+      });
+    }
+    if (mounted &&
+        generation == _generation &&
+        !_initialDetailConsumed &&
+        initialId != null) {
+      _initialDetailConsumed = true;
+      for (final item in _result?.items ?? const <FundingRecord>[]) {
+        if (item.id == initialId) {
+          await _open(item);
+          break;
+        }
       }
     }
   }
@@ -283,37 +323,46 @@ class _FundingScreenState extends State<FundingScreen> {
           ])));
     }
     final disabled = _loading || _mutating;
+    final title = switch (_mode) {
+      FundingList.explore => 'Pendanaan',
+      FundingList.mine => 'Pendanaan saya',
+      FundingList.wishlist => 'Wishlist',
+    };
     return Scaffold(
       appBar: AppBar(
-          title: const Text('Pendanaan'),
-          leading: IconButton(
-              tooltip: 'Kembali ke akun',
-              onPressed: disabled ? null : widget.onBack,
-              icon: const Icon(Icons.arrow_back))),
+          automaticallyImplyLeading: widget.showBackButton,
+          title: Text(title),
+          leading: widget.showBackButton
+              ? IconButton(
+                  tooltip: 'Kembali ke akun',
+                  onPressed: disabled ? null : widget.onBack,
+                  icon: const Icon(Icons.arrow_back))
+              : null),
       body: AppContent(
           child: ListView(padding: const EdgeInsets.all(20), children: [
-        Wrap(
-            spacing: 8,
-            children: FundingList.values
-                .map((mode) => ChoiceChip(
-                    key: Key('funding_tab_${mode.name}'),
-                    label: Text({
-                      FundingList.explore: 'Jelajahi',
-                      FundingList.mine: 'Milik saya',
-                      FundingList.wishlist: 'Wishlist'
-                    }[mode]!),
-                    selected: _mode == mode,
-                    onSelected: disabled
-                        ? null
-                        : (_) {
-                            setState(() {
-                              _mode = mode;
-                              _status = null;
-                              _notice = null;
-                            });
-                            unawaited(_load());
-                          }))
-                .toList()),
+        if (widget.showModeSwitcher)
+          Wrap(
+              spacing: 8,
+              children: FundingList.values
+                  .map((mode) => ChoiceChip(
+                      key: Key('funding_tab_${mode.name}'),
+                      label: Text({
+                        FundingList.explore: 'Jelajahi',
+                        FundingList.mine: 'Milik saya',
+                        FundingList.wishlist: 'Wishlist'
+                      }[mode]!),
+                      selected: _mode == mode,
+                      onSelected: disabled
+                          ? null
+                          : (_) {
+                              setState(() {
+                                _mode = mode;
+                                _status = null;
+                                _notice = null;
+                              });
+                              unawaited(_load());
+                            }))
+                  .toList()),
         const SizedBox(height: 16),
         TextField(
             key: const Key('funding_search'),
