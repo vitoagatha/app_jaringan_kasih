@@ -46,7 +46,8 @@ class _JaringanKasihAppState extends State<JaringanKasihApp>
     try {
       _showOnboarding = !await widget.onboardingStore!.hasCompleted();
     } catch (_) {
-      _showOnboarding = false;
+      // Jangan anggap panduan sudah selesai jika statusnya gagal dibaca.
+      _showOnboarding = true;
     } finally {
       if (mounted) setState(() => _onboardingReady = true);
     }
