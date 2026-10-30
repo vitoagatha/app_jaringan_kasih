@@ -1,72 +1,82 @@
-# Jaringan Kasih
+<p align="center">
+  <img src="assets/images/icon_splash.png" alt="Logo Jaringan Kasih" width="220" />
+</p>
 
-Project belajar Flutter dengan Laravel REST API, PostgreSQL, storage lokal, dan Mailpit.
+<h1 align="center">Jaringan Kasih</h1>
 
-Status: pengujian manual P0–P6 dilaporkan PASS oleh pengguna untuk alur lokal Android.
-Tambahan foto pendanaan memerlukan migration baru dan pengujian manual berikutnya.
-Entrypoint `lib/main.dart` menggunakan Laravel untuk registrasi, login, pemulihan sesi,
-dan logout. `lib/main_local.dart` tetap tersedia untuk diagnostik backend.
+<p align="center">Semua dapat membantu.</p>
 
-P2/P3 mencakup profil, email/password, dan foto profil. Instalasi
-picker serta checklist perangkat mengikuti [panduan P2/P3](docs/ACCOUNT_AND_PHOTOS.md).
+Jaringan Kasih adalah project aplikasi mobile bertema pendanaan sosial. Aplikasi ini dikembangkan sebagai sarana belajar membangun Flutter yang terhubung ke backend Laravel, mulai dari autentikasi dan pengelolaan akun hingga publikasi pendanaan serta penyimpanan gambar.
 
-Kode P4/P5 tersedia: pendanaan, kategori, draft/published, wishlist, pencarian/filter,
-dan pagination. Migration baru dijalankan pengguna sesuai [panduan P4/P5](docs/FUNDING_AND_WISHLIST.md).
-Foto pendanaan tersedia pada form, daftar, detail, dan wishlist; langkah aktivasi
-serta checklist tambahannya ada pada panduan P4/P5.
+Pengguna dapat menemukan pendanaan berdasarkan kategori, menyimpan pendanaan ke wishlist, dan membuat pendanaan sendiri dengan foto serta informasi kegiatan.
 
-P6 menambahkan perbaikan layout/aksesibilitas dasar, penanganan error/offline, dan
-menghapus source serta dependency Firebase lama.
-Lihat [catatan P6](docs/QUALITY_AND_CLEANUP.md).
+## Fitur yang tersedia
 
-## Mulai lagi setelah komputer dinyalakan
-
-Buka Docker Desktop dan tunggu engine siap. Dari root project:
-
-```powershell
-docker compose up -d --wait
-docker compose ps
-dart run tool/check_backend.dart http://127.0.0.1:8000/api/v1/
-flutter run
-```
-
-Pilih Android Emulator saat Flutter meminta perangkat. Backend harus tetap berjalan.
-Tidak perlu mengulang instalasi, key generation, atau migration setiap membuka project.
-
-## Panduan
-
-Untuk checkout baru, ikuti instalasi pertama pada panduan lokal, termasuk `flutter pub get`, sebelum menjalankan script Dart.
-
-- [Setup lokal dan troubleshooting](docs/LOCAL_DEVELOPMENT.md)
-- [Arsitektur dan kontrak API](docs/ARCHITECTURE.md)
-- [Prioritas dan checklist P0](docs/ROADMAP.md)
-- [Backend Laravel](backend/README.md)
-- [Autentikasi P1 dan checklist manual](docs/AUTHENTICATION.md)
-- [Profil, email/password, dan foto profil P2/P3](docs/ACCOUNT_AND_PHOTOS.md)
-- [Pendanaan dan wishlist P4/P5](docs/FUNDING_AND_WISHLIST.md)
-- [Kualitas aplikasi dan pembersihan P6](docs/QUALITY_AND_CLEANUP.md)
-
-## Layanan lokal
-
-| Layanan | Alamat dari komputer |
+| Bagian | Fitur |
 | --- | --- |
-| Health API + PostgreSQL | http://127.0.0.1:8000/api/v1/health |
-| Pemeriksaan proses Laravel | http://127.0.0.1:8000/up |
-| Mailpit | http://127.0.0.1:8025 |
-| PostgreSQL | 127.0.0.1:5433 |
+| Pembukaan aplikasi | Splash screen, onboarding sekali setelah data aplikasi masih baru, dan penentuan layar berdasarkan sesi login. |
+| Autentikasi | Registrasi, login, logout, penyimpanan token, serta pemulihan sesi. |
+| Akun dan profil | Pembaruan nama/email, verifikasi email, perubahan password, reset password, serta unggah dan hapus foto profil. |
+| Beranda | Menu kategori dalam grid tiga kolom, daftar pendanaan, dan akses ke fitur utama. |
+| Pendanaan | Membuat dan mengedit pendanaan milik sendiri, status draft/published, target dana, deskripsi, foto, daftar, dan detail pendanaan. |
+| Penelusuran | Pencarian judul, filter kategori, filter status pada pendanaan sendiri, dan pagination. |
+| Wishlist | Menyimpan dan menghapus pendanaan dari daftar favorit. |
+| Penanganan kondisi aplikasi | Indikator loading, pesan validasi, penanganan kegagalan koneksi, dan pilihan mencoba ulang pada layar terkait. |
 
-Alamat API dari Android Emulator adalah `http://10.0.2.2:8000/api/v1/`.
-HP fisik membutuhkan alamat IP komputer dan konfigurasi bind API; baca panduan lokal.
+Kategori awal meliputi **Pendidikan**, **Kesehatan**, **Zakat**, **Lingkungan**, **Rumah Ibadah**, dan **Bencana Alam**.
 
-## Pengujian
+## Alur aplikasi
 
-```powershell
-docker compose exec api php artisan test
-flutter test --no-pub
+Pada pembukaan aplikasi, splash screen ditampilkan saat status onboarding dan sesi diperiksa. Pengguna yang belum menyelesaikan onboarding akan melihat pengenalan singkat aplikasi. Setelah menekan **Mulai sekarang** atau **Lewati**, onboarding tidak ditampilkan lagi pada pembukaan berikutnya selama statusnya masih tersimpan.
+
+Pengguna tanpa sesi diarahkan ke halaman login atau pendaftaran. Jika sesi masih valid, aplikasi membuka beranda. Navigasi utama terdiri dari **Beranda**, **Jelajahi**, **Wishlist**, dan **Akun**. Dari akun, pengguna juga dapat mengakses pengelolaan pendanaan miliknya.
+
+## Teknologi
+
+| Komponen | Teknologi |
+| --- | --- |
+| Aplikasi | Flutter, Dart, dan Material 3 |
+| Backend | PHP 8.2+, Laravel 12, dan REST API |
+| Autentikasi API | Laravel Sanctum dengan bearer token |
+| Database | PostgreSQL 17 |
+| Penyimpanan sesi perangkat | `flutter_secure_storage` |
+| Pemilihan gambar | `image_picker` |
+| Penyimpanan gambar | Filesystem lokal backend Laravel |
+| Email pengembangan | Mailpit |
+| Lingkungan backend lokal | Docker Compose |
+| Pengujian otomatis | Flutter Test dan PHPUnit |
+
+Implementasi aktif menggunakan backend Laravel lokal; integrasi Firebase lama telah dihapus. Pengembangan dan pengujian manual berfokus pada Android Emulator. Versi web belum tersedia.
+
+## Arsitektur
+
+```text
+Flutter
+  └── REST API Laravel (/api/v1)
+        ├── PostgreSQL: akun, kategori, pendanaan, dan wishlist
+        ├── Storage lokal: foto profil dan foto pendanaan
+        └── Mailpit: email verifikasi dan reset password untuk pengembangan
 ```
 
-Test database menggunakan `jaringan_kasih_testing`, terpisah dari `jaringan_kasih`.
-Test mencakup fondasi P0, autentikasi P1, akun/foto P2/P3, serta pendanaan/wishlist P4/P5.
-Transaksi belum diimplementasikan pada backend lokal. Source/config/dependency
-Firebase lama telah dibersihkan pada P6. Jalankan ulang penuh setelah perubahan plugin native.
-`.env`, password pribadi, token, dan APP_KEY tidak boleh dimasukkan ke Git.
+Flutter berkomunikasi dengan Laravel melalui JSON dan multipart untuk unggahan gambar. Laravel menangani autentikasi, validasi, hak akses, serta penyimpanan data. File gambar disimpan pada storage backend, sementara database menyimpan referensi path gambar.
+
+## Struktur project
+
+```text
+lib/
+  core/                 Konfigurasi API, jaringan, dan komponen tampilan bersama
+  features/
+    auth/               Autentikasi, sesi, onboarding, dan navigasi utama
+    profile/            Profil, keamanan akun, dan foto profil
+    funding/            Pendanaan, kategori, pencarian, foto, dan wishlist
+    health/             Pemeriksaan koneksi backend
+  main.dart             Entrypoint aplikasi utama
+  main_local.dart       Entrypoint diagnostik backend
+backend/                REST API Laravel beserta pengujian backend
+assets/images/          Logo dan aset gambar aplikasi
+test/                   Pengujian Flutter
+tool/                   Utilitas pemeriksaan koneksi backend
+infra/                  Pendukung layanan lokal dan database pengujian
+docs/                   Dokumentasi teknis dan catatan pengembangan
+compose.yaml            Definisi layanan API, PostgreSQL, dan Mailpit
+```
