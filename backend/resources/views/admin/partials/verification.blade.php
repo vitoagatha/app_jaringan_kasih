@@ -1,0 +1,1 @@
+@if($user->email_verified_at)<span class="badge badge-soft badge-verified"><span class="status-dot bg-success"></span> Terverifikasi</span>@else<span class="badge badge-soft badge-pending"><span class="status-dot bg-warning"></span> Belum verifikasi</span>@endif

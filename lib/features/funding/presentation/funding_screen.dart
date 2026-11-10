@@ -376,6 +376,7 @@ class _FundingScreenState extends State<FundingScreen> {
                     tooltip: 'Cari',
                     onPressed: disabled ? null : () => _load(),
                     icon: const Icon(Icons.search)))),
+        const SizedBox(height: 16),
         DropdownButtonFormField<int>(
             hint: const Text('Semua kategori'),
             value: _category,
@@ -395,10 +396,12 @@ class _FundingScreenState extends State<FundingScreen> {
                     setState(() => _category = id);
                     unawaited(_load());
                   }),
-        if (_mode == FundingList.mine)
+        if (_mode == FundingList.mine) ...[
+          const SizedBox(height: 16),
           DropdownButtonFormField<String>(
               hint: const Text('Semua status'),
               value: _status,
+              isExpanded: true,
               decoration: const InputDecoration(labelText: 'Status'),
               items: const [
                 DropdownMenuItem(value: null, child: Text('Semua status')),
@@ -411,6 +414,7 @@ class _FundingScreenState extends State<FundingScreen> {
                       setState(() => _status = status);
                       unawaited(_load());
                     }),
+        ],
         const SizedBox(height: 12),
         const Text('Urutan: terbaru'),
         FilledButton(

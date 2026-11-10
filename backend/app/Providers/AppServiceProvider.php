@@ -26,6 +26,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimiter::for('admin-login', function (Request $request) {
+            $email = $request->input('email');
+            $identity = is_string($email) ? Str::lower(trim($email)) : '';
+
+            return [
+                Limit::perMinute(30)->by('admin-ip:'.$request->ip()),
+                Limit::perMinute(5)->by('admin-account:'.hash('sha256', $identity.'|'.$request->ip())),
+            ];
+        });
         VerifyEmail::createUrlUsing(function ($user) {
             $path = URL::temporarySignedRoute('api.v1.auth.verify', now()->addMinutes(60), [
                 'id' => $user->getKey(), 'hash' => sha1($user->getEmailForVerification()),

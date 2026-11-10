@@ -15,6 +15,11 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new ResetPasswordToken($token));
