@@ -10,3 +10,5 @@ Route::get('/', function () {
         'health_path' => '/api/v1/health',
     ]);
 });
+
+require __DIR__.'/admin.php';

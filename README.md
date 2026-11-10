@@ -31,12 +31,19 @@ Pada pembukaan aplikasi, splash screen ditampilkan saat status onboarding dan se
 
 Pengguna tanpa sesi diarahkan ke halaman login atau pendaftaran. Jika sesi masih valid, aplikasi membuka beranda. Navigasi utama terdiri dari **Beranda**, **Jelajahi**, **Wishlist**, dan **Akun**. Dari akun, pengguna juga dapat mengakses pengelolaan pendanaan miliknya.
 
+## Panel admin web
+
+Dashboard admin menggunakan Laravel Blade dan Tabler, dengan logo serta warna Jaringan Kasih. Panel mencakup ringkasan pengguna/verifikasi/kategori, daftar dan detail pengguna, pengelolaan kategori, serta profil dan keamanan akun admin.
+
+Akses panel dibatasi untuk role admin melalui sesi web. Akun admin dibuat secara interaktif melalui perintah Artisan, tanpa password bawaan. Modul pemeriksaan pendanaan dan transaksi masih ditunda. Rincian aktivasi dan hak akses tersedia pada [dokumentasi dashboard admin](docs/ADMIN_DASHBOARD.md).
+
 ## Teknologi
 
 | Komponen | Teknologi |
 | --- | --- |
 | Aplikasi | Flutter, Dart, dan Material 3 |
 | Backend | PHP 8.2+, Laravel 12, dan REST API |
+| Panel admin | Laravel Blade dan Tabler 1.7.4 |
 | Autentikasi API | Laravel Sanctum dengan bearer token |
 | Database | PostgreSQL 17 |
 | Penyimpanan sesi perangkat | `flutter_secure_storage` |
