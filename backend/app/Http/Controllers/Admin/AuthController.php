@@ -34,7 +34,7 @@ class AuthController extends Controller
                 }
             }],
         ]);
-        if (! Auth::guard('web')->attempt([...$data, 'role' => 'admin'])) {
+        if (! Auth::guard('web')->attempt([...$data, 'role' => 'admin', 'is_active' => true])) {
             throw ValidationException::withMessages(['email' => 'Email atau password admin tidak sesuai.']);
         }
         $request->session()->regenerate();

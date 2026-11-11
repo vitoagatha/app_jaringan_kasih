@@ -10,7 +10,7 @@ class EnsureAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        abort_unless($request->user('web')?->isAdmin(), 403);
+        abort_unless($request->user('web')?->isAdmin() && $request->user('web')->is_active, 403);
 
         return $next($request)->header('Cache-Control', 'no-store, private');
     }

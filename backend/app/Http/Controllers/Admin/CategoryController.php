@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Support\AdminActivity;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
@@ -59,7 +60,15 @@ class CategoryController extends Controller
             'slug.unique' => 'Nama kategori ini sudah digunakan.',
         ])->validate();
         try {
-            $category->fill($data)->save();
+            DB::transaction(function () use ($request, $category, $data) {
+                $category = $category->exists ? Category::whereKey($category->id)->lockForUpdate()->firstOrFail() : $category;
+                $before = $category->exists ? $category->only(['name', 'slug']) : [];
+                $category->fill($data)->save();
+                if ($category->wasRecentlyCreated || $category->wasChanged(['name', 'slug'])) {
+                    AdminActivity::record($request->user('web'), $category->wasRecentlyCreated ? 'category.created' : 'category.updated',
+                        $category, $before, $category->only(['name', 'slug']));
+                }
+            });
         } catch (UniqueConstraintViolationException) {
             throw ValidationException::withMessages(['name' => 'Nama kategori ini sudah digunakan.']);
         }
@@ -67,15 +76,17 @@ class CategoryController extends Controller
         return redirect()->route('admin.categories.index')->with('status', 'Kategori berhasil disimpan.');
     }
 
-    public function destroy(Category $category): RedirectResponse
+    public function destroy(Request $request, Category $category): RedirectResponse
     {
         try {
-            DB::transaction(function () use ($category) {
+            DB::transaction(function () use ($request, $category) {
                 $category = Category::whereKey($category->id)->lockForUpdate()->firstOrFail();
                 if ($category->fundings()->exists()) {
                     throw ValidationException::withMessages(['category' => 'Kategori masih digunakan dan tidak dapat dihapus.']);
                 }
+                $before = $category->only(['name', 'slug']);
                 $category->delete();
+                AdminActivity::record($request->user('web'), 'category.deleted', $category, $before);
             });
         } catch (QueryException $exception) {
             if ($exception->getCode() !== '23503') {

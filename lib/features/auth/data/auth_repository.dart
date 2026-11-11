@@ -74,6 +74,7 @@ class AuthRepository implements AuthGateway, AccountGateway {
   final TokenStore _store;
   final String deviceName;
   String? _token;
+  void Function(ApiException error)? onSessionRejected;
   FundingGateway get funding => FundingRepository(_client);
 
   AuthRepository._(this._client, this._store, this.deviceName);
@@ -85,7 +86,10 @@ class AuthRepository implements AuthGateway, AccountGateway {
   }) {
     late AuthRepository repository;
     final client = ApiClient(
-        baseUri: baseUri, tokenProvider: () async => repository._token);
+        baseUri: baseUri,
+        tokenProvider: () async => repository._token,
+        onSessionRejected: (error, token) =>
+            repository._rejectToken(error, token));
     repository = AuthRepository._(client, store, deviceName);
     return repository;
   }
@@ -102,8 +106,9 @@ class AuthRepository implements AuthGateway, AccountGateway {
       final data = await _client.get('auth/me');
       return _userFrom(data);
     } on ApiException catch (error) {
+      if (error.isAccountDisabled) rethrow;
       if (!error.isUnauthenticated) rethrow;
-      await _clearToken();
+      if (_token != null) await _clearToken();
       return null;
     }
   }
@@ -190,6 +195,18 @@ class AuthRepository implements AuthGateway, AccountGateway {
     }
   }
 
+  Future<void> _rejectToken(ApiException error, String token) async {
+    // A delayed response from an older session must not revoke a newer login.
+    if (_token != token) return;
+    try {
+      await _clearToken();
+    } on SessionStorageException catch (failure) {
+      onSessionRejected?.call(failure);
+      rethrow;
+    }
+    onSessionRejected?.call(error);
+  }
+
   @override
   Future<AuthUser> updateProfile(
           String name, String email, String currentPassword) async =>
@@ -254,5 +271,8 @@ class AuthRepository implements AuthGateway, AccountGateway {
   }
 
   @override
-  void close() => _client.close();
+  void close() {
+    onSessionRejected = null;
+    _client.close();
+  }
 }

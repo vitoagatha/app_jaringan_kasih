@@ -19,7 +19,20 @@ class SessionController extends ChangeNotifier {
 
   SessionController(this._auth, {FundingGateway? fundingGateway})
       : funding =
-            fundingGateway ?? (_auth is AuthRepository ? _auth.funding : null);
+            fundingGateway ?? (_auth is AuthRepository ? _auth.funding : null) {
+    final auth = _auth;
+    if (auth is AuthRepository) auth.onSessionRejected = _sessionRejected;
+  }
+
+  void _sessionRejected(ApiException failure) {
+    if (_disposed) return;
+    user = null;
+    error = failure;
+    phase = failure is SessionStorageException
+        ? SessionPhase.unavailable
+        : SessionPhase.signedOut;
+    _notify();
+  }
 
   AccountGateway get _account => _auth as AccountGateway;
   Uri? get photoUri => user == null ? null : _account.photoUri(user!);
@@ -69,6 +82,9 @@ class SessionController extends ChangeNotifier {
       error = _message(failure);
       if (failure is SessionStorageException) {
         phase = SessionPhase.unavailable;
+      } else if (failure is ApiException && failure.isAccountDisabled) {
+        user = null;
+        phase = SessionPhase.signedOut;
       } else if (!public &&
           failure is ApiException &&
           failure.isUnauthenticated) {
@@ -79,7 +95,11 @@ class SessionController extends ChangeNotifier {
           phase = user == null ? SessionPhase.signedOut : SessionPhase.signedIn;
         } catch (restoreFailure) {
           error = _message(restoreFailure);
-          phase = SessionPhase.unavailable;
+          user = null;
+          phase =
+              restoreFailure is ApiException && restoreFailure.isAccountDisabled
+                  ? SessionPhase.signedOut
+                  : SessionPhase.unavailable;
         }
       }
       return false;
@@ -102,7 +122,10 @@ class SessionController extends ChangeNotifier {
       phase = user == null ? SessionPhase.signedOut : SessionPhase.signedIn;
     } catch (failure) {
       error = _message(failure);
-      phase = SessionPhase.unavailable;
+      user = null;
+      phase = failure is ApiException && failure.isAccountDisabled
+          ? SessionPhase.signedOut
+          : SessionPhase.unavailable;
     } finally {
       busy = false;
       _notify();
@@ -131,6 +154,10 @@ class SessionController extends ChangeNotifier {
     } catch (failure) {
       error = _message(failure);
       if (failure is SessionStorageException) phase = SessionPhase.unavailable;
+      if (failure is ApiException && failure.isAccountDisabled) {
+        user = null;
+        phase = SessionPhase.signedOut;
+      }
     } finally {
       busy = false;
       _notify();
@@ -149,6 +176,10 @@ class SessionController extends ChangeNotifier {
     } catch (failure) {
       error = _message(failure);
       if (failure is SessionStorageException) phase = SessionPhase.unavailable;
+      if (failure is ApiException && failure.isAccountDisabled) {
+        user = null;
+        phase = SessionPhase.signedOut;
+      }
     } finally {
       busy = false;
       _notify();

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\AdminActivity;
 use App\Support\PasswordRules;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
@@ -35,6 +36,7 @@ class ProfileController extends Controller
         try {
             DB::transaction(function () use ($request, $data) {
                 $user = User::whereKey($request->user('web')->id)->lockForUpdate()->firstOrFail();
+                $before = $user->only(['name', 'email']);
                 if ($data['email'] !== $user->email) {
                     if (! Hash::check($data['current_password'] ?? '', $user->password)) {
                         throw ValidationException::withMessages(['current_password' => 'Masukkan password saat ini untuk mengganti email.'])->errorBag('profile');
@@ -42,6 +44,11 @@ class ProfileController extends Controller
                     $user->email_verified_at = null;
                 }
                 $user->fill(['name' => trim($data['name']), 'email' => $data['email']])->save();
+                $changed = array_intersect_key($user->getChanges(), array_flip(['name', 'email']));
+                if ($changed !== []) {
+                    AdminActivity::record($request->user('web'), 'admin.profile_updated', $user,
+                        array_intersect_key($before, $changed), $changed);
+                }
             });
         } catch (UniqueConstraintViolationException) {
             throw ValidationException::withMessages(['email' => 'Email sudah digunakan.'])->errorBag('profile');
@@ -63,6 +70,7 @@ class ProfileController extends Controller
             }
             $user->forceFill(['password' => $data['password'], 'remember_token' => Str::random(60)])->save();
             $user->tokens()->delete();
+            AdminActivity::record($request->user('web'), 'admin.password_changed', $user);
         });
         // Keep this browser signed in; auth.session rejects older password hashes elsewhere.
         $request->user('web')->refresh();

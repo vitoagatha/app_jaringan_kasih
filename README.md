@@ -33,9 +33,11 @@ Pengguna tanpa sesi diarahkan ke halaman login atau pendaftaran. Jika sesi masih
 
 ## Panel admin web
 
-Dashboard admin menggunakan Laravel Blade dan Tabler, dengan logo serta warna Jaringan Kasih. Panel mencakup ringkasan pengguna/verifikasi/kategori, daftar dan detail pengguna, pengelolaan kategori, serta profil dan keamanan akun admin.
+Dashboard admin menggunakan Laravel Blade dan Tabler, dengan logo serta warna Jaringan Kasih. Panel mencakup ringkasan pengguna/verifikasi/kategori, daftar dan detail pengguna, status aktif/nonaktif pengguna, pengelolaan kategori, profil dan keamanan akun admin, serta riwayat aktivitas dengan detail perubahan.
 
 Akses panel dibatasi untuk role admin melalui sesi web. Akun admin dibuat secara interaktif melalui perintah Artisan, tanpa password bawaan. Modul pemeriksaan pendanaan dan transaksi masih ditunda. Rincian aktivasi dan hak akses tersedia pada [dokumentasi dashboard admin](docs/ADMIN_DASHBOARD.md).
+
+Perubahan status pengguna memerlukan alasan dan dicatat bersama tindakan admin lainnya. Akun nonaktif ditolak backend dan sesi aplikasi dihentikan saat penonaktifan terdeteksi. Lihat [aktivitas admin dan status akun](docs/ADMIN_ACTIVITY_AND_ACCOUNT_STATUS.md).
 
 ## Teknologi
 

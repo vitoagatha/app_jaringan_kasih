@@ -11,6 +11,8 @@ class ApiClient {
   final Uri baseUri;
   final Duration timeout;
   final Future<String?> Function()? tokenProvider;
+  final Future<void> Function(ApiException error, String token)?
+      onSessionRejected;
   final HttpClient _httpClient;
   bool _closed = false;
 
@@ -18,6 +20,7 @@ class ApiClient {
     required Uri baseUri,
     this.timeout = const Duration(seconds: 15),
     this.tokenProvider,
+    this.onSessionRejected,
     HttpClient? httpClient,
   })  : baseUri = ApiConfig.parseBaseUri(baseUri.toString()),
         _httpClient = httpClient ?? HttpClient();
@@ -47,6 +50,7 @@ class ApiClient {
     HttpClientRequest? activeRequest;
     StreamIterator<String>? responseBody;
     var timedOut = false;
+    String? authenticatedToken;
     final elapsed = Stopwatch()..start();
 
     void cancel(ApiException error) {
@@ -79,6 +83,7 @@ class ApiClient {
         request.headers.set(HttpHeaders.acceptHeader, 'application/json');
         if (token != null && token.isNotEmpty) {
           request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $token');
+          authenticatedToken = token;
         }
         if (body != null) {
           request.headers.contentType = ContentType.json;
@@ -140,6 +145,8 @@ class ApiClient {
           throw ApiException(decoded['message'] as String,
               statusCode: response.statusCode,
               errors: errors,
+              code:
+                  decoded['code'] is String ? decoded['code'] as String : null,
               retryAfter: retryAfter);
         }
         if (!decoded.containsKey('data')) {
@@ -152,6 +159,13 @@ class ApiClient {
         cancel(timeoutError);
         throw timeoutError;
       });
+    } on ApiException catch (error) {
+      final token = authenticatedToken;
+      if (token != null &&
+          (error.isUnauthenticated || error.isAccountDisabled)) {
+        await onSessionRejected?.call(error, token);
+      }
+      rethrow;
     } on HandshakeException {
       throw const ApiException(
           'Koneksi aman ke server gagal. Periksa alamat API dan sertifikat server.');

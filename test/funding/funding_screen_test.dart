@@ -150,9 +150,14 @@ void main() {
     final session = SessionController(auth, fundingGateway: gateway);
     await tester.pumpWidget(JaringanKasihApp(session: session));
     await tester.pumpAndSettle();
-    await tap(tester, const Key('explore_fundings'));
-    expect(find.byKey(const Key('funding_tab_explore')), findsOneWidget);
-    expect(gateway.calls, 1);
+    await tester.tap(find.byKey(const Key('nav_account')));
+    await tester.pumpAndSettle();
+    final previousCalls = gateway.calls;
+    await tap(tester, const Key('account_explore_fundings'));
+    expect(find.byType(FundingScreen), findsOneWidget);
+    expect(find.byKey(const Key('funding_search')), findsOneWidget);
+    expect(gateway.mode, FundingList.explore);
+    expect(gateway.calls, previousCalls + 1);
   });
 
   testWidgets('Search and wishlist switch reset pagination and send filters',

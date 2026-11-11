@@ -14,7 +14,7 @@
             <div class="collapse navbar-collapse" id="sidebar-menu">
                 <div class="sidebar-caption">RUANG KELOLA</div>
                 <ul class="navbar-nav">
-                    @foreach ([['admin.dashboard', 'home', 'Ringkasan', 'admin.dashboard'], ['admin.users.index', 'users', 'Pengguna', 'admin.users.*'], ['admin.categories.index', 'category', 'Kategori', 'admin.categories.*'], ['admin.profile.edit', 'shield', 'Profil admin', 'admin.profile.*']] as [$route, $icon, $label, $pattern])
+                    @foreach ([['admin.dashboard', 'home', 'Ringkasan', 'admin.dashboard'], ['admin.users.index', 'users', 'Pengguna', 'admin.users.*'], ['admin.categories.index', 'category', 'Kategori', 'admin.categories.*'], ['admin.activities.index', 'clock', 'Aktivitas admin', 'admin.activities.*'], ['admin.profile.edit', 'shield', 'Profil admin', 'admin.profile.*']] as [$route, $icon, $label, $pattern])
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs($pattern) ? 'active' : '' }}" href="{{ route($route) }}" @if(request()->routeIs($pattern)) aria-current="page" @endif>
                             <span class="nav-link-icon"><x-admin.icon :name="$icon" /></span><span class="nav-link-title">{{ $label }}</span>

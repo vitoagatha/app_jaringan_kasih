@@ -5,12 +5,13 @@ Panel web lokal memakai Laravel Blade dan Tabler 1.7.4. Panel berbagi PostgreSQL
 ## Lingkup tahap ini
 
 - Ringkasan jumlah pengguna aplikasi, email terverifikasi/belum terverifikasi, kategori, pengguna terbaru, dan pendaftaran tujuh hari terakhir.
-- Daftar pengguna dengan pencarian, filter role/verifikasi, pagination, dan detail akun.
+- Daftar pengguna dengan pencarian, filter role/verifikasi/status, pagination, detail akun, dan pengelolaan status aktif/nonaktif pengguna biasa.
+- Aktivitas admin: riwayat tindakan, snapshot perubahan, filter admin/tindakan/tanggal, dan detail yang hanya dapat dibaca.
 - Kategori: pencarian, tambah, edit, dan hapus. Kategori yang masih dipakai pendanaan tidak dapat dihapus.
 - Profil admin: nama/email, pengiriman verifikasi email, dan perubahan password.
 - Sidebar responsif, login/logout, CSRF, pembatasan percobaan login, dan pemeriksaan role pada setiap route terlindungi.
 
-Statistik ringkasan menghitung akun dengan role `user`; daftar pengguna juga dapat menampilkan admin melalui filter role. Semua angka berasal dari database. Tidak ada pengelolaan pendanaan, persetujuan, donasi, atau transaksi pada panel tahap ini.
+Statistik ringkasan menghitung akun dengan role `user`; daftar pengguna juga dapat menampilkan admin melalui filter role. Semua angka berasal dari database. Tidak ada pengelolaan pendanaan, persetujuan, donasi, atau transaksi pada panel tahap ini. Rincian tahap lanjutan tersedia pada [aktivitas admin dan status akun](ADMIN_ACTIVITY_AND_ACCOUNT_STATUS.md).
 
 ## Aktivasi oleh pengembang
 
@@ -31,7 +32,7 @@ Buka **http://127.0.0.1:8000/admin/login**, lalu gunakan akun admin yang Anda bu
 ## Hak akses dan sesi
 
 - Kolom `role` tidak termasuk atribut mass assignment pengguna. Registrasi publik tidak dapat meminta role admin.
-- Panel tidak menyediakan tombol/form untuk menaikkan role, mengubah akun pengguna lain, atau memverifikasi email orang lain.
+- Panel tidak menyediakan tombol/form untuk menaikkan role, mengedit nama/email/password pengguna lain, atau memverifikasi email orang lain. Admin hanya dapat mengubah status akses pengguna biasa dengan alasan wajib dan catatan aktivitas.
 - Pembaruan profil hanya menyimpan nama/email admin yang sedang masuk. Mengganti email memerlukan password saat ini dan menghapus status verifikasi email lama.
 - Pengiriman tautan verifikasi memakai alur email yang sudah tersedia. Pada lingkungan lokal email masuk ke Mailpit.
 - Perubahan password membutuhkan password lama, konfirmasi, minimal 8 karakter, dan maksimal 72 byte. Token aplikasi dicabut; middleware `auth.session` menolak sesi web lain yang masih menyimpan hash password lama. Browser yang melakukan perubahan tetap masuk.
