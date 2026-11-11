@@ -118,6 +118,7 @@ a { text-underline-offset: 3px; }
 .account-details > div:last-child { border-bottom: 0; }
 .account-details dt { color: #778b83; font-size: .8rem; font-weight: 500; }
 .account-details dd { margin: 0; overflow-wrap: anywhere; font-size: .85rem; }
+.activity-text { white-space: pre-wrap; overflow-wrap: anywhere; min-width: 100px; }
 .guidance-card { background: #f2f7f3; }
 .admin-footer { color: #8b9c96; font-size: .68rem; padding: 20px 0; border-top: 1px solid #e7eeeb; margin-top: auto; }
 .admin-login { min-height: 100dvh; display: grid; grid-template-columns: 1fr 1fr; }

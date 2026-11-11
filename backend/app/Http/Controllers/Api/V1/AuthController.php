@@ -46,6 +46,10 @@ class AuthController extends Controller
                 return ApiResponse::error('Email atau password tidak sesuai.', 401)
                     ->header('Cache-Control', 'no-store');
             }
+            if (! $user->is_active) {
+                return ApiResponse::error('Akun Anda dinonaktifkan. Hubungi pengelola untuk bantuan.', 403, code: 'account_disabled')
+                    ->header('Cache-Control', 'no-store');
+            }
             if (Hash::needsRehash($user->password)) {
                 $user->forceFill(['password' => Hash::make($data['password'])])->save();
             }

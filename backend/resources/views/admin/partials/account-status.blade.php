@@ -1,0 +1,1 @@
+@if($user->is_active)<span class="badge badge-soft badge-verified"><span class="status-dot bg-success"></span> Aktif</span>@else<span class="badge badge-soft badge-pending"><span class="status-dot bg-warning"></span> Nonaktif</span>@endif

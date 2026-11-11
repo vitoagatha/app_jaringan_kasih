@@ -22,3 +22,11 @@ if (deletionModal) {
         name.textContent = trigger.dataset.categoryName;
     });
 }
+
+const statusModal = document.getElementById('user-status-modal');
+if (statusModal) {
+    statusModal.addEventListener('show.bs.modal', (event) => {
+        const form = document.getElementById('user-status-form');
+        if (!form?.reportValidity()) event.preventDefault();
+    });
+}

@@ -30,6 +30,10 @@ void main() {
     await tester.pumpWidget(JaringanKasihApp(
         session: SessionController(auth), photoPicker: picker));
     await tester.pumpAndSettle();
+    if (signedIn) {
+      await tester.tap(find.byKey(const Key('nav_account')));
+      await tester.pumpAndSettle();
+    }
   }
 
   Future<void> tap(WidgetTester tester, String key) async {
@@ -63,6 +67,9 @@ void main() {
     await open(tester, auth);
     await tap(tester, 'verify_email');
     expect(auth.verificationCalls, 1);
+    await tester.scrollUntilVisible(
+        find.textContaining('Tautan verifikasi dikirim.'), -200,
+        scrollable: find.byType(Scrollable).first);
     expect(find.textContaining('Tautan verifikasi dikirim.'), findsOneWidget);
   });
 

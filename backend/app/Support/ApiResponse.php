@@ -15,12 +15,13 @@ final class ApiResponse
         ], $status);
     }
 
-    public static function error(string $message, int $status, array $errors = []): JsonResponse
+    public static function error(string $message, int $status, array $errors = [], ?string $code = null): JsonResponse
     {
         return response()->json([
             'success' => false,
             'message' => $message,
             'errors' => (object) $errors,
+            ...($code === null ? [] : ['code' => $code]),
         ], $status);
     }
 }

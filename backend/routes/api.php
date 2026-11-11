@@ -11,7 +11,7 @@ Route::prefix('v1')->group(function () {
     Route::get('categories', [FundingController::class, 'categories']);
     Route::get('fundings', [FundingController::class, 'index']);
     Route::get('fundings/{funding}', [FundingController::class, 'show'])->whereNumber('funding');
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['account.active', 'auth:sanctum'])->group(function () {
         Route::get('me/fundings', [FundingController::class, 'mine']);
         Route::get('me/fundings/{funding}', [FundingController::class, 'ownShow'])->whereNumber('funding');
         Route::get('me/wishlist', [FundingController::class, 'wishlist']);
@@ -30,7 +30,7 @@ Route::prefix('v1')->group(function () {
         Route::post('reset-password', [AccountController::class, 'resetPassword'])->middleware('throttle:account-public')->name('reset-password');
         Route::get('email/verify/{id}/{hash}', [AccountController::class, 'verify'])
             ->middleware(['signed:relative', 'throttle:30,1'])->whereNumber('id')->name('verify');
-        Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware(['account.active', 'auth:sanctum'])->group(function () {
             Route::get('me', [AuthController::class, 'me'])->name('me');
             Route::post('logout', [AuthController::class, 'logout'])->name('logout');
             Route::patch('profile', [AccountController::class, 'update'])->middleware('throttle:account-write')->name('profile');

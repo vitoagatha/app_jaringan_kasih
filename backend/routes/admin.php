@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -16,6 +17,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('logout', [AuthController::class, 'destroy'])->name('logout');
         Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::get('users/{user}', [UserController::class, 'show'])->whereNumber('user')->name('users.show');
+        Route::patch('users/{user}/status', [UserController::class, 'status'])->whereNumber('user')->middleware('throttle:account-write')->name('users.status');
+        Route::get('activities', [ActivityController::class, 'index'])->name('activities.index');
+        Route::get('activities/{activity}', [ActivityController::class, 'show'])->whereNumber('activity')->name('activities.show');
         Route::resource('categories', CategoryController::class)->except('show')->whereNumber('category');
         Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('profile', [ProfileController::class, 'update'])->middleware('throttle:account-write')->name('profile.update');
